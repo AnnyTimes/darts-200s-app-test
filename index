@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>DARTS PRACTICE 200S TEST</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:#070b10;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  touch-action:manipulation;
+}
+
+body{
+  min-height:100vh;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  touch-action:manipulation;
+}
+
+.app{
+  width:min(100%,760px);
+  margin:0 auto;
+  padding:18px 16px 32px;
+}
+
+.title{
+  text-align:center;
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:.12em;
+  margin:8px 0 20px;
+}
+
+/* --------------------
+   common
+-------------------- */
+
+.card{
+  background:#101820;
+  border:1px solid #263441;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.card-title{
+  font-size:14px;
+  color:#9eabb6;
+  margin-bottom:10px;
+}
+
+.hidden{
+  display:none !important;
+}
+
+/* --------------------
+   connection
+-------------------- */
+
+.connection-status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:38px;
+}
+
+.connection-dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#69747d;
+  flex:none;
+}
+
+.connection-status.ok .connection-dot{
+  background:#24d26d;
+  box-shadow:0 0 12px rgba(36,210,109,.55);
+}
+
+.connection-text{
+  font-size:24px;
+  font-weight:800;
+}
+
+.connection-status.ok .connection-text{
+  color:#24d26d;
+}
+
+.connection-note{
+  color:#8d9aa5;
+  font-size:12px;
+  margin-top:7px;
+}
+
+/* --------------------
+   mode
+-------------------- */
+
+.mode-buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.mode-button{
+  height:52px;
+  border-radius:12px;
+  border:1px solid #334451;
+  background:#0b1218;
+  color:#aeb9c2;
+  font-weight:800;
+}
+
+.mode-button.active{
+  border-color:#3c87bd;
+  background:#122c3e;
+  color:#fff;
+}
+
+.setting-row{
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border-top:1px solid #26333d;
+}
+
+.setting-row:first-child{
+  border-top:0;
+}
+
+.setting-label{
+  color:#b6c1c9;
+}
+
+.setting-value{
+  font-weight:700;
+}
+
+input,select{
+  background:#080e13;
+  color:#fff;
+  border:1px solid #3a4a56;
+  border-radius:9px;
+  padding:9px 10px;
+  min-height:42px;
+  font-size:16px;
+}
+
+.start-button{
+  width:100%;
+  height:56px;
+  margin-top:14px;
+  border:0;
+  border-radius:12px;
+  background:#c52e3b;
+  color:#fff;
+  font-weight:800;
+  font-size:17px;
+}
+
+/* --------------------
+   play
+-------------------- */
+
+.play-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.play-mode{
+  font-size:13px;
+  color:#9daab4;
+}
+
+.target-label{
+  font-size:20px;
+  font-weight:800;
+  text-align:center;
+  margin-bottom:12px;
+}
+
+.score-area{
+  position:relative;
+  min-height:260px;
+  display:grid;
+  grid-template-columns:92px 1fr 92px;
+  align-items:center;
+  gap:8px;
+}
+
+.history{
+  align-self:stretch;
+  max-height:260px;
+  overflow:auto;
+  padding-right:4px;
+}
+
+.history-title{
+  color:#87949e;
+  font-size:11px;
+  margin-bottom:6px;
+}
+
+.history-item{
+  font-size:14px;
+  line-height:1.5;
+  border-bottom:1px solid #202c34;
+  padding:5px 0;
+}
+
+.history-item .positive{
+  color:#42a7e8;
+}
+
+.history-item .negative{
+  color:#e14a57;
+}
+
+.history-item .zero{
+  color:#9da7ae;
+}
+
+.score{
+  text-align:center;
+}
+
+.score-number{
+  font-size:82px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:-.05em;
+}
+
+.score-goal{
+  color:#8996a0;
+  font-size:13px;
+  margin-top:8px;
+}
+
+.out-area{
+  display:flex;
+  justify-content:center;
+}
+
+.out-button{
+  width:82px;
+  min-height:82px;
+  border-radius:50%;
+  border:2px solid #bd3442;
+  background:#170d10;
+  color:#ef5a65;
+  font-weight:900;
+  font-size:18px;
+}
+
+.play-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+
+.action-button{
+  min-height:48px;
+  border-radius:11px;
+  border:1px solid #35444f;
+  background:#101a22;
+  color:#fff;
+  font-weight:700;
+}
+
+.action-button.undo{
+  border-color:#4a6680;
+}
+
+.action-button.reset{
+  border-color:#663b40;
+}
+
+.last-input{
+  margin-top:12px;
+  color:#8c99a3;
+  font-size:12px;
+  text-align:center;
+  min-height:18px;
+}
+
+/* --------------------
+   finish
+-------------------- */
+
+.finished{
+  text-align:center;
+  padding:24px 10px 12px;
+}
+
+.finished-title{
+  font-size:30px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.finished-score{
+  color:#42a7e8;
+  font-size:18px;
+}
+
+.back-button{
+  width:100%;
+  height:52px;
+  margin-top:18px;
+  border-radius:11px;
+  border:1px solid #40515e;
+  background:#101a22;
+  color:#fff;
+  font-weight:800;
+}
+
+/* --------------------
+   mobile
+-------------------- */
+
+@media(max-width:520px){
+  .app{
+    padding:14px 12px 26px;
+  }
+
+  .score-area{
+    grid-template-columns:70px 1fr 82px;
+    min-height:240px;
+  }
+
+  .score-number{
+    font-size:68px;
+  }
+
+  .out-button{
+    width:72px;
+    min-height:72px;
+  }
+
+  .history{
+    max-height:230px;
+  }
+
+  .history-item{
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="title">DARTS PRACTICE</div>
+
+  <!-- SETTINGS -->
+  <section id="settingsScreen">
+
+    <div class="card">
+      <div class="card-title">ダーツボード接続確認</div>
+
+      <div id="connectionStatus" class="connection-status">
+        <span class="connection-dot"></span>
+        <span id="connectionText" class="connection-text">未確認</span>
+      </div>
+
+      <div id="connectionNote" class="connection-note">
+        200SからのHID入力を待っています
+      </div>
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-title">モード</div>
+
+      <div class="mode-buttons">
+        <button id="bullModeButton" class="mode-button active" type="button">
+          BULL
+        </button>
+
+        <button id="cricketModeButton" class="mode-button" type="button">
+          CRICKET
+        </button>
+      </div>
+
+
+      <!-- BULL SETTINGS -->
+      <div id="bullSettings">
+
+        <div class="setting-row">
+          <span class="setting-label">GOAL</span>
+          <input id="bullGoal" type="number" value="50" min="-999" max="9999">
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">IN BULL</span>
+          <span class="setting-value">+1</span>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">OUT BULL</span>
+          <span class="setting-value">0</span>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">その他</span>
+          <span class="setting-value">-1</span>
+        </div>
+
+      </div>
+
+
+      <!-- CRICKET SETTINGS -->
+      <div id="cricketSettings" class="hidden">
+
+        <div class="setting-row">
+          <span class="setting-label">GOAL</span>
+          <input id="cricketGoal" type="number" value="30" min="-999" max="9999">
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">ターゲット</span>
+
+          <select id="cricketTarget">
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20" selected>20</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">ターゲット</span>
+          <span class="setting-value">Single +1 / Double +2 / Triple +3</span>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">その他</span>
+          <span class="setting-value">-1</span>
+        </div>
+
+      </div>
+
+
+      <button id="startButton" class="start-button" type="button">
+        決定してスタート
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- PLAY -->
+  <section id="playScreen" class="hidden">
+
+    <div class="card">
+
+      <div class="play-header">
+        <span id="playMode" class="play-mode"></span>
+        <button id="backSettingsButton" class="action-button" type="button">
+          設定
+        </button>
+      </div>
+
+      <div id="playTarget" class="target-label"></div>
+
+      <div class="score-area">
+
+        <div class="history">
+          <div class="history-title">HISTORY</div>
+          <div id="historyList"></div>
+        </div>
+
+        <div class="score">
+          <div id="scoreNumber" class="score-number">0</div>
+          <div id="scoreGoal" class="score-goal"></div>
+        </div>
+
+        <div class="out-area">
+          <button id="outButton" class="out-button" type="button">
+            OUT
+          </button>
+        </div>
+
+      </div>
+
+      <div class="play-actions">
+        <button id="undoButton" class="action-button undo" type="button">
+          1つ戻す
+        </button>
+
+        <button id="resetButton" class="action-button reset" type="button">
+          RESET
+        </button>
+      </div>
+
+      <div id="lastInput" class="last-input"></div>
+
+    </div>
+
+
+    <div id="finishedCard" class="card hidden">
+
+      <div class="finished">
+        <div class="finished-title">GOAL!</div>
+        <div id="finishedScore" class="finished-score"></div>
+
+        <button id="finishBackButton" class="back-button" type="button">
+          設定に戻る
+        </button>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+
+<script>
+(() => {
+"use strict";
+
+/*
+=========================================================
+  200S実測HIDマッピング
+
+  1投でShift + キーのように複数keydownが発生する場合あり。
+  200ms以内のkeydownを同一投としてグループ化する。
+
+  mapping format:
+  key sequence -> {number, area}
+=========================================================
+*/
+
+const MAPPING = {
+
+  "s":              ["1","outer"],
+  "i":              ["1","inner"],
+  "Shift+s":        ["1","double"],
+  "w":              ["1","double"],
+  "n":              ["1","triple"],
+
+  "9":              ["2","outer"],
+  "=":              ["2","inner"],
+  "Shift+1":        ["2","double"],
+  "Shift+;":        ["2","triple"],
+
+  "m":              ["3","outer"],
+  "Shift+4":        ["3","inner"],
+  "Shift+o":        ["3","double"],
+  "Shift+j":        ["3","triple"],
+
+  "Shift+f":        ["4","outer"],
+  "3":              ["4","inner"],
+  "Shift+2":        ["4","double"],
+  "-":              ["4","triple"],
+
+  "7":              ["5","outer"],
+  "0":              ["5","inner"],
+  "Shift+k":        ["5","double"],
+  "Shift+=":        ["5","triple"],
+
+  "a":              ["6","outer"],
+  "]":              ["6","inner"],
+  "\\":             ["6","double"],
+  "k":              ["6","triple"],
+
+  "'":              ["7","outer"],
+  "o":              ["7","inner"],
+  "Shift+i":        ["7","double"],
+  "Shift+s":        ["7","triple"],
+
+  "Shift+n":        ["8","outer"],
+  "Shift+7":        ["8","inner"],
+  "Shift+z":        ["8","double"],
+  ";":              ["8","triple"],
+
+  "Shift+a":        ["9","outer"],
+  "5":              ["9","inner"],
+  "Shift+d":        ["9","double"],
+  "Shift+9":        ["9","triple"],
+
+  "Shift+6":        ["10","outer"],
+  "Shift+-":        ["10","inner"],
+  "6":              ["10","double"],
+  "1":              ["10","triple"],
+
+  "Shift+m":        ["11","outer"],
+  "h":              ["11","inner"],
+  "2":              ["11","double"],
+  "b":              ["11","triple"],
+
+  "f":              ["12","outer"],
+  "Shift+p":        ["12","inner"],
+  "Shift+.":        ["12","double"],
+  "Shift+/":        ["12","triple"],
+
+  "l":              ["13","outer"],
+  "Shift+q":        ["13","inner"],
+  "q":              ["13","double"],
+  "c":              ["13","triple"],
+
+  "/":              ["14","outer"],
+  "Shift+b":        ["14","inner"],
+  "p":              ["14","double"],
+  "t":              ["14","triple"],
+
+  "Shift+y":        ["15","outer"],
+  "j":              ["15","inner"],
+  "Shift+t":        ["15","double"],
+  "Shift+h":        ["15","triple"],
+
+  ",":              ["16","outer"],
+  "Shift+e":        ["16","inner"],
+  "e":              ["16","double"],
+  "Shift+x":        ["16","triple"],
+
+  "Shift+g":        ["17","outer"],
+  "Shift+5":        ["17","inner"],
+  "Shift+r":        ["17","double"],
+  "d":              ["17","triple"],
+
+  "Shift+l":        ["18","outer"],
+  "Shift+c":        ["18","inner"],
+  "Shift+3":        ["18","double"],
+  "Shift+u":        ["18","triple"],
+
+  "r":              ["19","outer"],
+  "8":              ["19","inner"],
+  ".":              ["19","double"],
+  "Shift+v":        ["19","triple"],
+
+  "Shift+8":        ["20","outer"],
+  "4":              ["20","inner"],
+  "Shift+,":        ["20","double"],
+  "[":              ["20","triple"],
+
+  "Shift+'":        ["bull","outer"],
+  "g":              ["bull","inner"]
+};
+
+
+/*
+=========================================================
+  実際のcodeベースマッピング
+=========================================================
+*/
+
+const CODE_MAPPING = {
+
+  "KeyS": ["1","outer"],
+  "KeyI": ["1","inner"],
+  "ShiftLeft+KeyW": ["1","double"],
+  "KeyN": ["1","triple"],
+
+  "Digit9": ["2","outer"],
+  "Equal": ["2","inner"],
+  "ShiftLeft+Digit1": ["2","double"],
+  "ShiftLeft+Semicolon": ["2","triple"],
+
+  "KeyM": ["3","outer"],
+  "ShiftLeft+Digit4": ["3","inner"],
+  "ShiftLeft+KeyO": ["3","double"],
+  "ShiftLeft+KeyJ": ["3","triple"],
+
+  "ShiftLeft+KeyF": ["4","outer"],
+  "Digit3": ["4","inner"],
+  "ShiftLeft+Digit2": ["4","double"],
+  "Minus": ["4","triple"],
+
+  "Digit7": ["5","outer"],
+  "Digit0": ["5","inner"],
+  "ShiftLeft+KeyK": ["5","double"],
+  "ShiftLeft+Equal": ["5","triple"],
+
+  "KeyA": ["6","outer"],
+  "BracketRight": ["6","inner"],
+  "Backslash": ["6","double"],
+  "KeyK": ["6","triple"],
+
+  "Quote": ["7","outer"],
+  "KeyO": ["7","inner"],
+  "ShiftLeft+KeyI": ["7","double"],
+  "ShiftLeft+KeyS": ["7","triple"],
+
+  "ShiftLeft+KeyN": ["8","outer"],
+  "ShiftLeft+Digit7": ["8","inner"],
+  "ShiftLeft+KeyZ": ["8","double"],
+  "Semicolon": ["8","triple"],
+
+  "ShiftLeft+KeyA": ["9","outer"],
+  "Digit5": ["9","inner"],
+  "ShiftLeft+KeyD": ["9","double"],
+  "ShiftLeft+Digit9": ["9","triple"],
+
+  "ShiftLeft+Digit6": ["10","outer"],
+  "ShiftLeft+Minus": ["10","inner"],
+  "Digit6": ["10","double"],
+  "Digit1": ["10","triple"],
+
+  "ShiftLeft+KeyM": ["11","outer"],
+  "KeyH": ["11","inner"],
+  "Digit2": ["11","double"],
+  "KeyB": ["11","triple"],
+
+  "KeyF": ["12","outer"],
+  "ShiftLeft+KeyP": ["12","inner"],
+  "ShiftLeft+Period": ["12","double"],
+  "ShiftLeft+Slash": ["12","triple"],
+
+  "KeyL": ["13","outer"],
+  "ShiftLeft+KeyQ": ["13","inner"],
+  "KeyQ": ["13","double"],
+  "KeyC": ["13","triple"],
+
+  "Slash": ["14","outer"],
+  "ShiftLeft+KeyB": ["14","inner"],
+  "KeyP": ["14","double"],
+  "KeyT": ["14","triple"],
+
+  "ShiftLeft+KeyY": ["15","outer"],
+  "KeyJ": ["15","inner"],
+  "ShiftLeft+KeyT": ["15","double"],
+  "ShiftLeft+KeyH": ["15","triple"],
+
+  "Comma": ["16","outer"],
+  "ShiftLeft+KeyE": ["16","inner"],
+  "KeyE": ["16","double"],
+  "ShiftLeft+KeyX": ["16","triple"],
+
+  "ShiftLeft+KeyG": ["17","outer"],
+  "ShiftLeft+Digit5": ["17","inner"],
+  "ShiftLeft+KeyR": ["17","double"],
+  "KeyD": ["17","triple"],
+
+  "ShiftLeft+KeyL": ["18","outer"],
+  "ShiftLeft+KeyC": ["18","inner"],
+  "ShiftLeft+Digit3": ["18","double"],
+  "ShiftLeft+KeyU": ["18","triple"],
+
+  "KeyR": ["19","outer"],
+  "Digit8": ["19","inner"],
+  "Period": ["19","double"],
+  "ShiftLeft+KeyV": ["19","triple"],
+
+  "ShiftLeft+Digit8": ["20","outer"],
+  "Digit4": ["20","inner"],
+  "ShiftLeft+Comma": ["20","double"],
+  "BracketLeft": ["20","triple"],
+
+  "ShiftLeft+Quote": ["bull","outer"],
+  "KeyG": ["bull","inner"]
+};
+
+
+/*
+=========================================================
+  DOM
+=========================================================
+*/
+
+const settingsScreen = document.getElementById("settingsScreen");
+const playScreen = document.getElementById("playScreen");
+
+const connectionStatus = document.getElementById("connectionStatus");
+const connectionText = document.getElementById("connectionText");
+const connectionNote = document.getElementById("connectionNote");
+
+const bullModeButton = document.getElementById("bullModeButton");
+const cricketModeButton = document.getElementById("cricketModeButton");
+
+const bullSettings = document.getElementById("bullSettings");
+const cricketSettings = document.getElementById("cricketSettings");
+
+const bullGoalInput = document.getElementById("bullGoal");
+const cricketGoalInput = document.getElementById("cricketGoal");
+const cricketTargetInput = document.getElementById("cricketTarget");
+
+const startButton = document.getElementById("startButton");
+
+const playMode = document.getElementById("playMode");
+const playTarget = document.getElementById("playTarget");
+const scoreNumber = document.getElementById("scoreNumber");
+const scoreGoal = document.getElementById("scoreGoal");
+
+const historyList = document.getElementById("historyList");
+
+const outButton = document.getElementById("outButton");
+const undoButton = document.getElementById("undoButton");
+const resetButton = document.getElementById("resetButton");
+const backSettingsButton = document.getElementById("backSettingsButton");
+
+const lastInput = document.getElementById("lastInput");
+
+const finishedCard = document.getElementById("finishedCard");
+const finishedScore = document.getElementById("finishedScore");
+const finishBackButton = document.getElementById("finishBackButton");
+
+
+/*
+=========================================================
+  state
+=========================================================
+*/
+
+let mode = "BULL";
+
+let goal = 50;
+
+let cricketTarget = "20";
+
+let score = 0;
+
+let history = [];
+
+let inputBuffer = [];
+
+let inputTimer = null;
+
+const GROUP_WINDOW = 200;
+
+
+/*
+=========================================================
+  mode
+=========================================================
+*/
+
+function setMode(nextMode){
+
+  mode = nextMode;
+
+  const isBull = mode === "BULL";
+
+  bullModeButton.classList.toggle("active", isBull);
+  cricketModeButton.classList.toggle("active", !isBull);
+
+  bullSettings.classList.toggle("hidden", !isBull);
+  cricketSettings.classList.toggle("hidden", isBull);
+}
+
+bullModeButton.addEventListener("click", () => {
+  setMode("BULL");
+});
+
+cricketModeButton.addEventListener("click", () => {
+  setMode("CRICKET");
+});
+
+
+/*
+=========================================================
+  connection status
+=========================================================
+*/
+
+function markConnectionOK(){
+
+  connectionStatus.classList.add("ok");
+
+  connectionText.textContent = "接続OK!";
+
+  connectionNote.textContent =
+    "200SからHID入力を確認しました";
+}
+
+
+/*
+=========================================================
+  normalize key
+=========================================================
+*/
+
+function normalizeKey(event){
+
+  return event.key;
+}
+
+function codePart(event){
+
+  return event.code;
+}
+
+
+/*
+=========================================================
+  resolve mapping
+=========================================================
+*/
+
+function resolveByCode(events){
+
+  if(!events.length){
+    return null;
+  }
+
+  const codes = events.map(e => e.code);
+
+  /*
+    Shift + something
+  */
+
+  if(codes.length === 2){
+
+    const nonShift = codes.find(c =>
+      c !== "ShiftLeft" &&
+      c !== "ShiftRight"
+    );
+
+    const shift = codes.find(c =>
+      c === "ShiftLeft" ||
+      c === "ShiftRight"
+    );
+
+    if(shift && nonShift){
+
+      const key = "ShiftLeft+" + nonShift;
+
+      if(CODE_MAPPING[key]){
+        return CODE_MAPPING[key];
+      }
+    }
+  }
+
+  /*
+    single
+  */
+
+  if(codes.length === 1){
+
+    if(CODE_MAPPING[codes[0]]){
+      return CODE_MAPPING[codes[0]];
+    }
+  }
+
+  /*
+    fallback: KEY mapping
+  */
+
+  const keys = events.map(e => e.key);
+
+  if(keys.length === 2){
+
+    const hasShift = events.some(e =>
+      e.key === "Shift"
+    );
+
+    const other = events.find(e =>
+      e.key !== "Shift"
+    );
+
+    if(hasShift && other){
+
+      const key =
+        "Shift+" + other.key;
+
+      if(MAPPING[key]){
+        return MAPPING[key];
+      }
+    }
+  }
+
+  if(keys.length === 1){
+
+    if(MAPPING[keys[0]]){
+      return MAPPING[keys[0]];
+    }
+  }
+
+  return null;
+}
+
+
+/*
+=========================================================
+  score calculation
+=========================================================
+*/
+
+function getScoreValue(target, area){
+
+  /*
+    BULL
+  */
+
+  if(mode === "BULL"){
+
+    if(target === "bull"){
+
+      if(area === "inner"){
+        return 1;
+      }
+
+      if(area === "outer"){
+        return 0;
+      }
+    }
+
+    return -1;
+  }
+
+
+  /*
+    CRICKET
+  */
+
+  if(mode === "CRICKET"){
+
+    if(target === cricketTarget){
+
+      if(area === "outer" || area === "inner"){
+        return 1;
+      }
+
+      if(area === "double"){
+        return 2;
+      }
+
+      if(area === "triple"){
+        return 3;
+      }
+    }
+
+    return -1;
+  }
+
+  return -1;
+}
+
+
+/*
+=========================================================
+  label
+=========================================================
+*/
+
+function areaLabel(area){
+
+  switch(area){
+
+    case "outer":
+      return "外S";
+
+    case "inner":
+      return "内S";
+
+    case "double":
+      return "D";
+
+    case "triple":
+      return "T";
+
+    default:
+      return area;
+  }
+}
+
+function targetLabel(target){
+
+  if(target === "bull"){
+    return "BULL";
+  }
+
+  return target;
+}
+
+
+/*
+=========================================================
+  add result
+=========================================================
+*/
+
+function addResult(target, area, value, source){
+
+  const before = score;
+
+  score += value;
+
+  const item = {
+    target,
+    area,
+    value,
+    before,
+    after: score,
+    source
+  };
+
+  history.push(item);
+
+  render();
+
+  if(score >= goal){
+    finishGame();
+  }
+}
+
+
+/*
+=========================================================
+  HID input grouping
+=========================================================
+*/
+
+function receiveHID(event){
+
+  /*
+    接続確認は「実際のHID入力」を受信した時だけ。
+    OUTボタン等ではここは呼ばれない。
+  */
+
+  markConnectionOK();
+
+  inputBuffer.push({
+    key:event.key,
+    code:event.code,
+    keyCode:event.keyCode,
+    time:performance.now()
+  });
+
+  if(inputTimer){
+    clearTimeout(inputTimer);
+  }
+
+  inputTimer = setTimeout(() => {
+
+    processBufferedInput();
+
+  }, GROUP_WINDOW);
+}
+
+
+/*
+=========================================================
+  process grouped input
+=========================================================
+*/
+
+function processBufferedInput(){
+
+  inputTimer = null;
+
+  if(!inputBuffer.length){
+    return;
+  }
+
+  const events = inputBuffer.slice();
+
+  inputBuffer = [];
+
+  const mapped = resolveByCode(events);
+
+  if(!mapped){
+
+    lastInput.textContent =
+      "HID受信: " +
+      events.map(e => e.key).join(" + ") +
+      "（未登録）";
+
+    return;
+  }
+
+  const target = mapped[0];
+  const area = mapped[1];
+
+  const value = getScoreValue(target, area);
+
+  const label =
+    targetLabel(target) +
+    " " +
+    areaLabel(area);
+
+  addResult(
+    target,
+    area,
+    value,
+    "HID"
+  );
+
+  lastInput.textContent =
+    "HID: " +
+    label +
+    "  " +
+    (value >= 0 ? "+" : "") +
+    value;
+}
+
+
+/*
+=========================================================
+  OUT
+=========================================================
+*/
+
+outButton.addEventListener("click", () => {
+
+  addResult(
+    "OUT",
+    "other",
+    -1,
+    "OUT"
+  );
+
+  lastInput.textContent =
+    "OUT  -1";
+});
+
+
+/*
+=========================================================
+  UNDO
+=========================================================
+*/
+
+undoButton.addEventListener("click", () => {
+
+  if(!history.length){
+    return;
+  }
+
+  const item = history.pop();
+
+  score = item.before;
+
+  finishedCard.classList.add("hidden");
+
+  render();
+
+  lastInput.textContent =
+    "1つ戻しました";
+});
+
+
+/*
+=========================================================
+  RESET
+=========================================================
+*/
+
+resetButton.addEventListener("click", () => {
+
+  score = 0;
+
+  history = [];
+
+  finishedCard.classList.add("hidden");
+
+  lastInput.textContent =
+    "RESET";
+
+  render();
+});
+
+
+/*
+=========================================================
+  render
+=========================================================
+*/
+
+function render(){
+
+  scoreNumber.textContent = score;
+
+  scoreGoal.textContent =
+    "GOAL " + goal;
+
+  historyList.innerHTML = "";
+
+  /*
+    新しいものを上に表示
+  */
+
+  const reversed = history.slice().reverse();
+
+  reversed.forEach(item => {
+
+    const div = document.createElement("div");
+
+    div.className = "history-item";
+
+    let label;
+
+    if(item.source === "OUT"){
+
+      label = "OUT";
+
+    }else{
+
+      label =
+        targetLabel(item.target) +
+        " " +
+        areaLabel(item.area);
+    }
+
+    const valueText =
+      item.value > 0
+        ? "+" + item.value
+        : String(item.value);
+
+    if(item.value > 0){
+      div.innerHTML =
+        label +
+        ' <span class="positive">' +
+        valueText +
+        "</span>";
+    }
+    else if(item.value < 0){
+      div.innerHTML =
+        label +
+        ' <span class="negative">' +
+        valueText +
+        "</span>";
+    }
+    else{
+      div.innerHTML =
+        label +
+        ' <span class="zero">0</span>';
+    }
+
+    historyList.appendChild(div);
+  });
+}
+
+
+/*
+=========================================================
+  finish
+=========================================================
+*/
+
+function finishGame(){
+
+  finishedCard.classList.remove("hidden");
+
+  finishedScore.textContent =
+    "SCORE " + score +
+    " / GOAL " + goal;
+}
+
+
+/*
+=========================================================
+  start
+=========================================================
+*/
+
+startButton.addEventListener("click", () => {
+
+  if(mode === "BULL"){
+
+    const value =
+      Number(bullGoalInput.value);
+
+    goal =
+      Number.isFinite(value)
+        ? value
+        : 50;
+
+  }else{
+
+    const value =
+      Number(cricketGoalInput.value);
+
+    goal =
+      Number.isFinite(value)
+        ? value
+        : 30;
+
+    cricketTarget =
+      cricketTargetInput.value;
+  }
+
+  score = 0;
+
+  history = [];
+
+  lastInput.textContent = "";
+
+  settingsScreen.classList.add("hidden");
+  playScreen.classList.remove("hidden");
+
+  finishedCard.classList.add("hidden");
+
+  playMode.textContent =
+    mode;
+
+  if(mode === "BULL"){
+
+    playTarget.textContent =
+      "BULL";
+
+  }else{
+
+    playTarget.textContent =
+      "TARGET " + cricketTarget;
+  }
+
+  render();
+});
+
+
+/*
+=========================================================
+  settings back
+=========================================================
+*/
+
+function returnToSettings(){
+
+  playScreen.classList.add("hidden");
+  settingsScreen.classList.remove("hidden");
+
+  finishedCard.classList.add("hidden");
+}
+
+backSettingsButton.addEventListener(
+  "click",
+  returnToSettings
+);
+
+finishBackButton.addEventListener(
+  "click",
+  returnToSettings
+);
+
+
+/*
+=========================================================
+  200S HID listener
+
+  keydown only.
+  ボタン操作では発火しない。
+=========================================================
+*/
+
+document.addEventListener(
+  "keydown",
+  receiveHID,
+  false
+);
+
+
+/*
+=========================================================
+  prevent accidental browser zoom / key behavior
+=========================================================
+*/
+
+document.addEventListener("gesturestart", e => {
+  e.preventDefault();
+});
+
+document.addEventListener("gesturechange", e => {
+  e.preventDefault();
+});
+
+document.addEventListener("gestureend", e => {
+  e.preventDefault();
+});
+
+
+/*
+=========================================================
+  initial
+=========================================================
+*/
+
+setMode("BULL");
+render();
+
+})();
+</script>
+
+</body>
+</html>
