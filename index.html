@@ -27,7 +27,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .setting-label{color:#b6c1c9;margin-bottom:9px;font-size:14px}
 .stepper{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
 .stepper button,.target-buttons button{min-height:44px;border-radius:9px;border:1px solid #354653;background:#0b1218;color:#fff;font-weight:800}
-.stepper .current{background:#172735;border-color:#4b718f;font-size:16px}
+.stepper .current{background:#070b10;border:2px solid #5b6d7a;color:#f4f7f9;font-size:17px;box-shadow:inset 0 0 0 1px #1a252d}.stepper button[data-delta]{background:#15212a;border-color:#314451;color:#b9c6cf}.stepper button[data-delta]:active{background:#20313d}.stepper .current:active{background:#070b10}
 .target-buttons{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
 .target-buttons button.active{background:#122c3e;border-color:#3c87bd}
 .start-button{width:100%;height:56px;margin-top:14px;border:0;border-radius:12px;background:#c52e3b;color:#fff;font-weight:800;font-size:17px}
@@ -268,7 +268,7 @@ const settings = {
 
 let mode = "BULL", goal = 50, cricketTarget = "20", score = 0, history = [];
 let inputBuffer = [], inputTimer = null, seUnlocked = false, finished = false;
-const GROUP_WINDOW = 200;
+const GROUP_WINDOW = 80;
 
 const $ = id => document.getElementById(id);
 const settingsScreen = $("settingsScreen"), playScreen = $("playScreen");
@@ -378,15 +378,26 @@ function unlockAudio() {
   seUnlocked = true;
 }
 
+const audioPools = {};
+const audioPoolIndex = {};
+function prepareAudioPools() {
+  ["seWadaiko","seImpact","seArrow","seKotsuzumi"].forEach(id => {
+    const base = $(id);
+    if (!base) return;
+    audioPools[id] = [base, base.cloneNode(true), base.cloneNode(true)];
+    audioPools[id].forEach(a => { a.preload = "auto"; a.volume = 1; });
+    audioPoolIndex[id] = 0;
+  });
+}
 function playOne(id) {
-  const base = $(id);
-  if (!base) return Promise.resolve();
-  const audio = base.cloneNode(true);
-  audio.volume = 1;
-  audio.currentTime = 0;
+  const pool = audioPools[id];
+  if (!pool || !pool.length) return Promise.resolve();
+  const index = audioPoolIndex[id] % pool.length;
+  audioPoolIndex[id] = (index + 1) % pool.length;
+  const audio = pool[index];
+  try { audio.pause(); audio.currentTime = 0; } catch (_) {}
   const p = audio.play();
   if (p && typeof p.catch === "function") p.catch(() => {});
-  setTimeout(() => audio.remove(), 1500);
   return p && typeof p.then === "function" ? p : Promise.resolve();
 }
 
@@ -416,9 +427,26 @@ async function playSE(target, area) {
 function receiveHID(event) {
   if (event.repeat) return;
   markConnectionOK();
-  inputBuffer.push({key:event.key, code:event.code, keyCode:event.keyCode, time:performance.now()});
-  clearTimeout(inputTimer);
-  inputTimer = setTimeout(processBufferedInput, GROUP_WINDOW);
+
+  const item = {key:event.key, code:event.code, keyCode:event.keyCode, time:performance.now()};
+  const isShift = event.code === "ShiftLeft" || event.code === "ShiftRight";
+
+  if (isShift) {
+    clearTimeout(inputTimer);
+    inputBuffer = [item];
+    inputTimer = setTimeout(processBufferedInput, GROUP_WINDOW);
+    return;
+  }
+
+  if (inputBuffer.length === 1) {
+    clearTimeout(inputTimer);
+    inputBuffer.push(item);
+    processBufferedInput();
+    return;
+  }
+
+  inputBuffer = [item];
+  processBufferedInput();
 }
 
 function processBufferedInput() {
@@ -428,7 +456,10 @@ function processBufferedInput() {
   inputBuffer = [];
   const mapped = resolveByCode(events);
   if (!mapped) {
-    lastInput.textContent = "HID受信: " + events.map(e => e.key).join(" + ") + "（未登録）";
+    const value = mode === "BULL" ? settings.bullOther : settings.cricketOther;
+    addResult("OTHER", "other", value, "HID");
+    lastInput.textContent = "HID: その他  " + formatValue(value);
+    void playOne("seArrow");
     return;
   }
   const [target, area] = mapped;
@@ -508,6 +539,7 @@ document.addEventListener("gesturestart", e => e.preventDefault());
 document.addEventListener("gesturechange", e => e.preventDefault());
 document.addEventListener("gestureend", e => e.preventDefault());
 
+prepareAudioPools();
 setMode("BULL");
 updateSettingUI();
 render();
