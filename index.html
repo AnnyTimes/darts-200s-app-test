@@ -49,6 +49,47 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .last-input{margin-top:12px;color:#8c99a3;font-size:12px;text-align:center;min-height:18px}
 .finished{text-align:center;padding:24px 10px 12px} .finished-title{font-size:30px;font-weight:900;margin-bottom:8px}
 .finished-score{color:#42a7e8;font-size:18px} .back-button{width:100%;height:52px;margin-top:18px;border-radius:11px;border:1px solid #40515e;background:#101a22;color:#fff;font-weight:800}
+
+.history{min-width:0}
+.history-scroll{max-height:260px;overflow:auto;padding-right:3px;scroll-behavior:auto}
+.history-table{width:100%;min-width:330px;border-collapse:separate;border-spacing:0 5px;font-size:11px}
+.history-table th{color:#74818c;font-weight:700;text-align:center;padding:0 4px 3px;white-space:nowrap}
+.history-table td{background:#0b1218;border-top:1px solid #22303a;border-bottom:1px solid #22303a;padding:6px 5px;text-align:center;white-space:nowrap}
+.history-table td:first-child{border-left:1px solid #22303a;border-radius:8px 0 0 8px;color:#788692}
+.history-table td:last-child{border-right:1px solid #22303a;border-radius:0 8px 8px 0;font-weight:800}
+.history-table .positive{color:#42a7e8}.history-table .negative{color:#e14a57}.history-table .zero{color:#9da7ae}
+.history-table .round-total{font-size:12px}
+.result-header{text-align:center;padding:6px 0 16px}
+.result-mode{font-size:13px;color:#8e9ba5;letter-spacing:.08em}
+.result-title{font-size:30px;font-weight:900;margin-top:4px}
+.result-summary{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.result-summary-item{background:#0b1218;border:1px solid #273742;border-radius:12px;padding:12px 8px;text-align:center}
+.result-summary-label{font-size:11px;color:#7f8c96}
+.result-summary-value{font-size:25px;font-weight:900;margin-top:3px}
+.result-summary-value.accent{color:#42a7e8}
+.result-section-title{font-size:14px;font-weight:800;margin:18px 0 9px;color:#dce4e9}
+.result-throw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.result-stat-card{background:#0b1218;border:1px solid #273742;border-radius:12px;padding:12px 8px;text-align:center}
+.result-stat-card .label{font-size:12px;color:#9aa7b0}
+.result-stat-card .big{font-size:22px;font-weight:900;margin:5px 0 2px}
+.result-stat-card .small{font-size:11px;color:#7e8b95}
+.result-dual{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.result-bull-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.result-mark-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.result-mark-card{background:#0b1218;border:1px solid #273742;border-radius:11px;padding:10px 7px;text-align:center}
+.result-mark-card .mark{font-size:11px;color:#8f9ba4}
+.result-mark-card .count{font-size:23px;font-weight:900;margin-top:3px}
+.result-mark-card .unit{font-size:10px;color:#78858f}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+.result-actions button{min-height:50px;border-radius:11px;border:1px solid #40515e;background:#101a22;color:#fff;font-weight:800}
+.result-actions .primary{border-color:#3c87bd;background:#122c3e}
+.result-note{font-size:11px;color:#75828c;text-align:center;margin-top:10px}
+@media(max-width:520px){
+.result-summary{grid-template-columns:1.3fr 1fr 1fr}
+.result-summary-value{font-size:21px}
+.result-title{font-size:27px}
+.result-stat-card .big{font-size:20px}
+}
 @media(max-width:520px){
 .app{padding:14px 12px 26px} .score-area{grid-template-columns:70px 1fr 82px;min-height:240px}
 .score-number{font-size:68px} .out-button{width:72px;min-height:72px} .history{max-height:230px} .history-item{font-size:12px}
@@ -155,14 +196,69 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
     <div class="play-header"><span id="playMode" class="play-mode"></span><button id="backSettingsButton" class="action-button" type="button">設定</button></div>
     <div id="playTarget" class="target-label"></div>
     <div class="score-area">
-      <div class="history"><div class="history-title">HISTORY</div><div id="historyList"></div></div>
+      <div class="history"><div class="history-title">HISTORY</div><div id="historyScroll" class="history-scroll"><div id="historyList"></div></div></div>
       <div class="score"><div id="scoreNumber" class="score-number">0</div><div id="scoreGoal" class="score-goal"></div></div>
       <div class="out-area"><button id="outButton" class="out-button" type="button">OUT</button></div>
     </div>
     <div class="play-actions"><button id="undoButton" class="action-button undo" type="button">戻す</button><button id="resetButton" class="action-button reset" type="button">RESET</button></div>
     <div id="lastInput" class="last-input"></div>
   </div>
-  <div id="finishedCard" class="card hidden"><div class="finished"><div class="finished-title">GOAL!</div><div id="finishedScore" class="finished-score"></div><button id="finishBackButton" class="back-button" type="button">設定に戻る</button></div></div>
+  <div id="finishedCard" class="card hidden"><div class="finished"><div class="finished-title">GOAL!</div><div id="finishedScore" class="finished-score"></div><button id="resultButton" class="back-button" type="button">リザルトを見る</button></div></div>
+</section>
+
+<section id="resultScreen" class="hidden">
+  <div class="card">
+    <div class="result-header">
+      <div id="resultMode" class="result-mode"></div>
+      <div class="result-title">RESULT</div>
+    </div>
+
+    <div class="result-summary">
+      <div class="result-summary-item"><div class="result-summary-label">FINAL SCORE</div><div id="resultScore" class="result-summary-value accent">0</div></div>
+      <div class="result-summary-item"><div class="result-summary-label">GOAL</div><div id="resultGoal" class="result-summary-value">0</div></div>
+      <div class="result-summary-item"><div class="result-summary-label">ROUNDS</div><div id="resultRounds" class="result-summary-value">0</div></div>
+    </div>
+
+    <div id="bullResult" class="hidden">
+      <div class="result-section-title">投順別ブル率・インブル率</div>
+      <div class="result-throw-grid">
+        <div class="result-stat-card"><div class="label">1投目</div><div id="bullThrow1" class="big">0%</div><div id="innerBullThrow1" class="small">インブル 0%</div></div>
+        <div class="result-stat-card"><div class="label">2投目</div><div id="bullThrow2" class="big">0%</div><div id="innerBullThrow2" class="small">インブル 0%</div></div>
+        <div class="result-stat-card"><div class="label">3投目</div><div id="bullThrow3" class="big">0%</div><div id="innerBullThrow3" class="small">インブル 0%</div></div>
+      </div>
+
+      <div class="result-section-title">総合</div>
+      <div class="result-dual">
+        <div class="result-stat-card"><div class="label">総合ブル率</div><div id="overallBullRate" class="big">0%</div></div>
+        <div class="result-stat-card"><div class="label">総合インブル率</div><div id="overallInnerBullRate" class="big">0%</div></div>
+      </div>
+
+      <div class="result-section-title">ブル本数別</div>
+      <div class="result-bull-grid">
+        <div class="result-stat-card"><div class="label">No BULL</div><div id="noBullRate" class="big">0%</div><div id="noBullCount" class="small">0回</div></div>
+        <div class="result-stat-card"><div class="label">One BULL</div><div id="oneBullRate" class="big">0%</div><div id="oneBullCount" class="small">0回</div></div>
+        <div class="result-stat-card"><div class="label">Two BULL</div><div id="twoBullRate" class="big">0%</div><div id="twoBullCount" class="small">0回</div></div>
+        <div class="result-stat-card"><div class="label">HAT</div><div id="hatRate" class="big">0%</div><div id="hatCount" class="small">0回</div></div>
+      </div>
+    </div>
+
+    <div id="cricketResult" class="hidden">
+      <div class="result-section-title">基本</div>
+      <div class="result-dual">
+        <div class="result-stat-card"><div class="label">ヒット率</div><div id="cricketHitRate" class="big">0%</div><div id="cricketHitCount" class="small">0 / 0投</div></div>
+        <div class="result-stat-card"><div class="label">トリプル率</div><div id="cricketTripleRate" class="big">0%</div><div id="cricketTripleCount" class="small">0 / 0投</div></div>
+      </div>
+
+      <div class="result-section-title">マーク数別回数</div>
+      <div id="cricketMarkGrid" class="result-mark-grid"></div>
+    </div>
+
+    <div class="result-actions">
+      <button id="resultPlayAgainButton" class="primary" type="button">もう一度プレイ</button>
+      <button id="resultSettingsButton" type="button">設定に戻る</button>
+    </div>
+    <div class="result-note">このプレイの投擲結果を集計しています</div>
+  </div>
 </section>
 </div>
 
@@ -277,10 +373,13 @@ const bullModeButton = $("bullModeButton"), cricketModeButton = $("cricketModeBu
 const bullSettings = $("bullSettings"), cricketSettings = $("cricketSettings");
 const targetButtons = document.querySelectorAll("#targetButtons button");
 const startButton = $("startButton"), playMode = $("playMode"), playTarget = $("playTarget");
-const scoreNumber = $("scoreNumber"), scoreGoal = $("scoreGoal"), historyList = $("historyList");
+const scoreNumber = $("scoreNumber"), scoreGoal = $("scoreGoal"), historyList = $("historyList"), historyScroll = $("historyScroll");
 const outButton = $("outButton"), undoButton = $("undoButton"), resetButton = $("resetButton");
 const backSettingsButton = $("backSettingsButton"), lastInput = $("lastInput");
-const finishedCard = $("finishedCard"), finishedScore = $("finishedScore"), finishBackButton = $("finishBackButton");
+const finishedCard = $("finishedCard"), finishedScore = $("finishedScore"), resultButton = $("resultButton");
+const resultScreen = $("resultScreen"), resultMode = $("resultMode"), resultScore = $("resultScore"), resultGoal = $("resultGoal"), resultRounds = $("resultRounds");
+const bullResult = $("bullResult"), cricketResult = $("cricketResult");
+const resultPlayAgainButton = $("resultPlayAgainButton"), resultSettingsButton = $("resultSettingsButton");
 
 function formatValue(v) { return v > 0 ? "+" + v : String(v); }
 function clamp(v, min=-999, max=9999) { return Math.max(min, Math.min(max, Math.trunc(v))); }
@@ -366,7 +465,7 @@ function addResult(target, area, value, source) {
 }
 
 function unlockAudio() {
-  const audios = [$("seWadaiko"), $("seImpact"), $("seArrow"), $("seKotsuzumi")];
+  const audios = [$('seWadaiko'), $('seImpact'), $('seArrow'), $('seKotsuzumi')];
   audios.forEach(a => {
     try {
       a.muted = true;
@@ -376,25 +475,51 @@ function unlockAudio() {
     } catch (_) { a.muted = false; }
   });
   seUnlocked = true;
+  void prepareWebAudio();
 }
 
-const audioPools = {};
-const audioPoolIndex = {};
-function prepareAudioPools() {
-  ["seWadaiko","seImpact","seArrow","seKotsuzumi"].forEach(id => {
-    const base = $(id);
-    if (!base) return;
-    audioPools[id] = [base, base.cloneNode(true), base.cloneNode(true)];
-    audioPools[id].forEach(a => { a.preload = "auto"; a.volume = 1; });
-    audioPoolIndex[id] = 0;
-  });
+let audioContext = null;
+const audioBuffers = {};
+const audioFiles = {
+  seWadaiko: "se_wadaiko.mp3",
+  seImpact: "se_impact.mp3",
+  seArrow: "se_arrow.mp3",
+  seKotsuzumi: "se_kotsuzumi.mp3"
+};
+
+async function prepareWebAudio() {
+  if (!audioContext) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    try { audioContext = new AudioCtx(); } catch (_) { audioContext = null; return; }
+  }
+  try { if (audioContext.state === "suspended") await audioContext.resume(); } catch (_) {}
+  const entries = Object.entries(audioFiles);
+  await Promise.all(entries.map(async ([id, file]) => {
+    if (audioBuffers[id]) return;
+    try {
+      const response = await fetch(file, {cache: "force-cache"});
+      if (!response.ok) throw new Error("SE fetch failed");
+      const data = await response.arrayBuffer();
+      audioBuffers[id] = await audioContext.decodeAudioData(data);
+    } catch (_) {}
+  }));
 }
-function playOne(id) {
-  const pool = audioPools[id];
-  if (!pool || !pool.length) return Promise.resolve();
-  const index = audioPoolIndex[id] % pool.length;
-  audioPoolIndex[id] = (index + 1) % pool.length;
-  const audio = pool[index];
+
+function playOne(id, when=0) {
+  const buffer = audioBuffers[id];
+  if (audioContext && buffer) {
+    try {
+      if (audioContext.state === "suspended") audioContext.resume();
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start(Math.max(audioContext.currentTime, audioContext.currentTime + when));
+      return Promise.resolve();
+    } catch (_) {}
+  }
+  const audio = $(id);
+  if (!audio) return Promise.resolve();
   try { audio.pause(); audio.currentTime = 0; } catch (_) {}
   const p = audio.play();
   if (p && typeof p.catch === "function") p.catch(() => {});
@@ -403,7 +528,7 @@ function playOne(id) {
 
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-async function playSE(target, area) {
+function playSE(target, area) {
   if (!seUnlocked) return;
   if (mode === "BULL") {
     if (target === "bull" && area === "inner") return playOne("seImpact");
@@ -415,10 +540,7 @@ async function playSE(target, area) {
   }
   if (target === cricketTarget && (area === "double" || area === "triple")) {
     const count = area === "double" ? 2 : 3;
-    for (let i = 0; i < count; i++) {
-      await playOne("seWadaiko");
-      if (i < count - 1) await delay(110);
-    }
+    for (let i = 0; i < count; i++) playOne("seWadaiko", i * 0.11);
     return;
   }
   return playOne("seArrow");
@@ -492,19 +614,143 @@ resetButton.addEventListener("click", () => {
   render();
 });
 
+function historyLabel(item) {
+  if (item.source === "OUT") return "OUT";
+  if (item.target === "OTHER") return "その他";
+  return targetLabel(item.target) + " " + areaLabel(item.area);
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+  if (!history.length) {
+    historyList.innerHTML = '<div class="history-item zero">まだ記録がありません</div>';
+    return;
+  }
+  const table = document.createElement("table");
+  table.className = "history-table";
+  table.innerHTML = '<thead><tr><th>R</th><th>1投目</th><th>2投目</th><th>3投目</th><th>合計</th></tr></thead>';
+  const tbody = document.createElement("tbody");
+  for (let i = 0; i < history.length; i += 3) {
+    const round = history.slice(i, i + 3);
+    const tr = document.createElement("tr");
+    const roundNo = document.createElement("td");
+    roundNo.textContent = String(Math.floor(i / 3) + 1);
+    tr.appendChild(roundNo);
+    let total = 0;
+    for (let j = 0; j < 3; j++) {
+      const td = document.createElement("td");
+      if (round[j]) {
+        const item = round[j];
+        total += item.value;
+        const cls = item.value > 0 ? "positive" : item.value < 0 ? "negative" : "zero";
+        td.innerHTML = historyLabel(item) + ' <span class="' + cls + '">' + formatValue(item.value) + '</span>';
+      } else {
+        td.textContent = "—";
+        td.className = "zero";
+      }
+      tr.appendChild(td);
+    }
+    const totalTd = document.createElement("td");
+    totalTd.className = "round-total";
+    const totalCls = total > 0 ? "positive" : total < 0 ? "negative" : "zero";
+    totalTd.innerHTML = '<span class="' + totalCls + '">' + formatValue(total) + '</span>';
+    tr.appendChild(totalTd);
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  historyList.appendChild(table);
+  requestAnimationFrame(() => { historyScroll.scrollTop = historyScroll.scrollHeight; });
+}
+
 function render() {
   scoreNumber.textContent = score;
   scoreGoal.textContent = "GOAL " + goal;
-  historyList.innerHTML = "";
-  history.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "history-item";
-    const label = item.source === "OUT" ? "OUT" : targetLabel(item.target) + " " + areaLabel(item.area);
-    const valueText = formatValue(item.value);
-    const cls = item.value > 0 ? "positive" : item.value < 0 ? "negative" : "zero";
-    div.innerHTML = label + ' <span class="' + cls + '">' + valueText + "</span>";
-    historyList.appendChild(div);
+  renderHistory();
+}
+
+function percent(part, total) {
+  return total ? (part / total * 100).toFixed(1) + "%" : "0.0%";
+}
+
+function isBull(item) {
+  return item.target === "bull" && (item.area === "inner" || item.area === "outer");
+}
+function isInnerBull(item) {
+  return item.target === "bull" && item.area === "inner";
+}
+function cricketMarks(item) {
+  if (item.target !== cricketTarget) return 0;
+  if (item.area === "triple") return 3;
+  if (item.area === "double") return 2;
+  if (item.area === "outer" || item.area === "inner") return 1;
+  return 0;
+}
+
+function updateBullResult() {
+  const throws = history.length;
+  const positions = [1,2,3];
+  positions.forEach(pos => {
+    const items = history.filter((_, i) => i % 3 === pos - 1);
+    const bullCount = items.filter(isBull).length;
+    const innerCount = items.filter(isInnerBull).length;
+    $("bullThrow" + pos).textContent = percent(bullCount, items.length);
+    $("innerBullThrow" + pos).textContent = "インブル " + percent(innerCount, items.length);
   });
+  const bullCount = history.filter(isBull).length;
+  const innerCount = history.filter(isInnerBull).length;
+  $("overallBullRate").textContent = percent(bullCount, throws);
+  $("overallInnerBullRate").textContent = percent(innerCount, throws);
+
+  const rounds = Math.ceil(throws / 3);
+  const distribution = {no:0, one:0, two:0, hat:0};
+  for (let i = 0; i < history.length; i += 3) {
+    const roundBull = history.slice(i, i + 3).filter(isBull).length;
+    if (roundBull === 0) distribution.no++;
+    else if (roundBull === 1) distribution.one++;
+    else if (roundBull === 2) distribution.two++;
+    else if (roundBull === 3) distribution.hat++;
+  }
+  $("noBullRate").textContent = percent(distribution.no, rounds);
+  $("oneBullRate").textContent = percent(distribution.one, rounds);
+  $("twoBullRate").textContent = percent(distribution.two, rounds);
+  $("hatRate").textContent = percent(distribution.hat, rounds);
+  $("noBullCount").textContent = distribution.no + "回";
+  $("oneBullCount").textContent = distribution.one + "回";
+  $("twoBullCount").textContent = distribution.two + "回";
+  $("hatCount").textContent = distribution.hat + "回";
+}
+
+function updateCricketResult() {
+  const marks = history.map(cricketMarks);
+  const total = marks.length;
+  const hits = marks.filter(m => m >= 1).length;
+  const triples = marks.filter(m => m === 3).length;
+  $("cricketHitRate").textContent = percent(hits, total);
+  $("cricketTripleRate").textContent = percent(triples, total);
+  $("cricketHitCount").textContent = hits + " / " + total + "投";
+  $("cricketTripleCount").textContent = triples + " / " + total + "投";
+
+  const counts = Array(10).fill(0);
+  marks.forEach(m => { if (m >= 0 && m <= 9) counts[m]++; });
+  const grid = $("cricketMarkGrid");
+  grid.innerHTML = "";
+  counts.forEach((count, mark) => {
+    const card = document.createElement("div");
+    card.className = "result-mark-card";
+    card.innerHTML = '<div class="mark">' + mark + 'マーク</div><div class="count">' + count + '</div><div class="unit">回</div>';
+    grid.appendChild(card);
+  });
+}
+
+function updateResultScreen() {
+  resultMode.textContent = mode + " MODE";
+  resultScore.textContent = score;
+  resultGoal.textContent = goal;
+  resultRounds.textContent = Math.ceil(history.length / 3);
+  bullResult.classList.toggle("hidden", mode !== "BULL");
+  cricketResult.classList.toggle("hidden", mode !== "CRICKET");
+  if (mode === "BULL") updateBullResult();
+  else updateCricketResult();
 }
 
 function finishGame() {
@@ -513,33 +759,43 @@ function finishGame() {
   finishedScore.textContent = "SCORE " + score + " / GOAL " + goal;
 }
 
-startButton.addEventListener("click", () => {
+function startGame() {
   unlockAudio();
   goal = mode === "BULL" ? settings.bullGoal : settings.cricketGoal;
   cricketTarget = settings.cricketTarget;
   score = 0; history = []; finished = false; lastInput.textContent = "";
   settingsScreen.classList.add("hidden");
+  resultScreen.classList.add("hidden");
   playScreen.classList.remove("hidden");
   finishedCard.classList.add("hidden");
   playMode.textContent = mode;
   playTarget.textContent = mode === "BULL" ? "BULL" : "TARGET " + cricketTarget;
   render();
-});
+}
+
+startButton.addEventListener("click", startGame);
 
 function returnToSettings() {
   playScreen.classList.add("hidden");
+  resultScreen.classList.add("hidden");
   settingsScreen.classList.remove("hidden");
   finishedCard.classList.add("hidden");
 }
+function showResultScreen() {
+  updateResultScreen();
+  playScreen.classList.add("hidden");
+  resultScreen.classList.remove("hidden");
+}
 backSettingsButton.addEventListener("click", returnToSettings);
-finishBackButton.addEventListener("click", returnToSettings);
+resultButton.addEventListener("click", showResultScreen);
+resultSettingsButton.addEventListener("click", returnToSettings);
+resultPlayAgainButton.addEventListener("click", startGame);
 
 document.addEventListener("keydown", receiveHID, false);
 document.addEventListener("gesturestart", e => e.preventDefault());
 document.addEventListener("gesturechange", e => e.preventDefault());
 document.addEventListener("gestureend", e => e.preventDefault());
 
-prepareAudioPools();
 setMode("BULL");
 updateSettingUI();
 render();
