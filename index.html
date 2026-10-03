@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>DARTS PRACTICE 200S TEST</title>
+<title>DARTS PRACTICE ver4</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:#070b10;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;touch-action:manipulation}
@@ -19,6 +19,12 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .connection-text{font-size:24px;font-weight:800}
 .connection-status.ok .connection-text{color:#24d26d}
 .connection-note{color:#8d9aa5;font-size:12px;margin-top:7px}
+.connection-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.ble-connect-button{min-height:46px;border-radius:11px;border:1px solid #3c87bd;background:#122c3e;color:#fff;font-weight:800}
+.ble-connect-button:disabled{opacity:.55}
+.ble-status{font-size:12px;color:#8d9aa5;margin-top:8px;line-height:1.5}
+.ble-status.ok{color:#42d27a}
+
 .mode-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mode-button{height:52px;border-radius:12px;border:1px solid #334451;background:#0b1218;color:#aeb9c2;font-weight:800}
 .mode-button.active{border-color:#3c87bd;background:#122c3e;color:#fff}
@@ -106,6 +112,10 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
     <div class="card-title">ダーツボード接続確認</div>
     <div id="connectionStatus" class="connection-status"><span class="connection-dot"></span><span id="connectionText" class="connection-text">未確認</span></div>
     <div id="connectionNote" class="connection-note">ダーツボードにスローして下さい</div>
+    <div class="connection-actions">
+      <button id="bleConnectButton" class="ble-connect-button" type="button">DARTSLIVE HOMEを接続</button>
+    </div>
+    <div id="bleStatus" class="ble-status">iPhone Safari + beacio など、Web Bluetooth対応環境で接続できます。</div>
   </div>
 
   <div class="card">
@@ -271,6 +281,33 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 (() => {
 "use strict";
 
+const BLE_SERVICE_UUID = "6e40fff0-b5a3-f393-e0a9-e50e24dcca9e";
+const BLE_CHARACTERISTIC_UUID = "6e40fff6-b5a3-f393-e0a9-e50e24dcca9e";
+
+const BLE_MAPPING = {
+  0x3c:["20","double"], 0x28:["20","outer"], 0x50:["20","triple"], 0x14:["20","inner"],
+  0x29:["1","double"],    0x15:["1","outer"],    0x3d:["1","triple"],  0x01:["1","inner"],
+  0x3a:["18","double"],   0x26:["18","outer"],   0x4e:["18","triple"], 0x12:["18","inner"],
+  0x2c:["4","double"],    0x18:["4","outer"],    0x40:["4","triple"],  0x04:["4","inner"],
+  0x35:["13","double"],   0x21:["13","outer"],   0x49:["13","triple"], 0x0d:["13","inner"],
+  0x2e:["6","double"],    0x1a:["6","outer"],    0x42:["6","triple"],  0x06:["6","inner"],
+  0x32:["10","double"],   0x1e:["10","outer"],   0x46:["10","triple"], 0x0a:["10","inner"],
+  0x37:["15","double"],   0x23:["15","outer"],   0x4b:["15","triple"], 0x0f:["15","inner"],
+  0x2a:["2","double"],    0x16:["2","outer"],    0x3e:["2","triple"],  0x02:["2","inner"],
+  0x39:["17","double"],   0x25:["17","outer"],   0x4d:["17","triple"], 0x11:["17","inner"],
+  0x2b:["3","double"],    0x17:["3","outer"],    0x3f:["3","triple"],  0x03:["3","inner"],
+  0x3b:["19","double"],   0x27:["19","outer"],   0x4f:["19","triple"], 0x13:["19","inner"],
+  0x2f:["7","double"],    0x1b:["7","outer"],    0x43:["7","triple"],  0x07:["7","inner"],
+  0x38:["16","double"],   0x24:["16","outer"],   0x4c:["16","triple"], 0x10:["16","inner"],
+  0x30:["8","double"],    0x1c:["8","outer"],    0x44:["8","triple"],  0x08:["8","inner"],
+  0x33:["11","double"],   0x1f:["11","outer"],   0x47:["11","triple"], 0x0b:["11","inner"],
+  0x36:["14","double"],   0x22:["14","outer"],   0x4a:["14","triple"], 0x0e:["14","inner"],
+  0x31:["9","double"],    0x1d:["9","outer"],    0x45:["9","triple"],  0x09:["9","inner"],
+  0x34:["12","double"],   0x20:["12","outer"],   0x48:["12","triple"], 0x0c:["12","inner"],
+  0x2d:["5","double"],    0x19:["5","outer"],    0x41:["5","triple"],  0x05:["5","inner"],
+  0x51:["bull","outer"], 0x52:["bull","inner"], 0x54:["CHANGE","change"]
+};
+
 const CODE_MAPPING = {
   "KeyS": ["1","outer"],
   "KeyI": ["1","inner"],
@@ -369,6 +406,7 @@ const GROUP_WINDOW = 80;
 const $ = id => document.getElementById(id);
 const settingsScreen = $("settingsScreen"), playScreen = $("playScreen");
 const connectionStatus = $("connectionStatus"), connectionText = $("connectionText"), connectionNote = $("connectionNote");
+const bleConnectButton = $("bleConnectButton"), bleStatus = $("bleStatus");
 const bullModeButton = $("bullModeButton"), cricketModeButton = $("cricketModeButton");
 const bullSettings = $("bullSettings"), cricketSettings = $("cricketSettings");
 const targetButtons = document.querySelectorAll("#targetButtons button");
@@ -420,10 +458,79 @@ function setMode(next) {
 bullModeButton.addEventListener("click", () => setMode("BULL"));
 cricketModeButton.addEventListener("click", () => setMode("CRICKET"));
 
-function markConnectionOK() {
+function markConnectionOK(source="HID") {
   connectionStatus.classList.add("ok");
   connectionText.textContent = "接続OK!";
-  connectionNote.textContent = "200SからHID入力を確認しました";
+  connectionNote.textContent = source === "BLE" ? "DARTSLIVE HOMEからBLE入力を確認しました" : "200SからHID入力を確認しました";
+}
+
+let bleDevice = null, bleCharacteristic = null;
+
+function hexBytes(data) {
+  return Array.from(new Uint8Array(data)).map(v => v.toString(16).padStart(2,"0")).join(" ");
+}
+
+function processBLEPacket(dataView) {
+  if (!dataView || dataView.byteLength < 3) {
+    bleStatus.textContent = "BLEデータを受信しましたが、形式を判定できませんでした。";
+    return;
+  }
+  const bytes = new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength);
+  const hex = Array.from(bytes).map(v => v.toString(16).padStart(2,"0")).join(" ");
+  const segment = bytes[2];
+  const mapped = BLE_MAPPING[segment];
+  if (mapped && mapped[1] === "change") {
+    bleStatus.textContent = "BLE: CHANGEを受信しました（スコアには反映しません）";
+    return;
+  }
+  markConnectionOK("BLE");
+  if (!mapped) {
+    const value = mode === "BULL" ? settings.bullOther : settings.cricketOther;
+    addResult("OTHER", "other", value, "BLE");
+    lastInput.textContent = "BLE: その他  " + formatValue(value) + "  [" + hex + "]";
+    void playOne("seArrow");
+    bleStatus.textContent = "BLE受信: 未登録セグメント 0x" + segment.toString(16).padStart(2,"0");
+    return;
+  }
+  const [target, area] = mapped;
+  const value = getScoreValue(target, area);
+  addResult(target, area, value, "BLE");
+  lastInput.textContent = "BLE: " + targetLabel(target) + " " + areaLabel(area) + "  " + formatValue(value);
+  void playSE(target, area);
+  bleStatus.textContent = "BLE受信: " + targetLabel(target) + " " + areaLabel(area) + "  [" + hex + "]";
+}
+
+async function connectDartsliveHome() {
+  if (!navigator.bluetooth) {
+    bleStatus.textContent = "Web Bluetoothが利用できません。beacio等の対応環境を確認してください。";
+    return;
+  }
+  bleConnectButton.disabled = true;
+  bleStatus.textContent = "DARTSLIVE HOMEを検索しています…";
+  try {
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{services: [BLE_SERVICE_UUID]}],
+      optionalServices: [BLE_SERVICE_UUID]
+    });
+    bleDevice.addEventListener("gattserverdisconnected", () => {
+      bleStatus.textContent = "DARTSLIVE HOMEとのBLE接続が切断されました。";
+      bleConnectButton.disabled = false;
+    });
+    const server = await bleDevice.gatt.connect();
+    const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+    bleCharacteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
+    bleCharacteristic.addEventListener("characteristicvaluechanged", e => {
+      processBLEPacket(e.target.value);
+    });
+    await bleCharacteristic.startNotifications();
+    bleStatus.textContent = "BLE接続OK: " + (bleDevice.name || "DARTSLIVE HOME") + "。スローしてください。";
+    bleConnectButton.textContent = "DARTSLIVE HOME 接続中";
+    markConnectionOK("BLE");
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err);
+    bleStatus.textContent = "BLE接続できませんでした: " + msg;
+    bleConnectButton.disabled = false;
+  }
 }
 
 function resolveByCode(events) {
@@ -791,6 +898,7 @@ resultButton.addEventListener("click", showResultScreen);
 resultSettingsButton.addEventListener("click", returnToSettings);
 resultPlayAgainButton.addEventListener("click", startGame);
 
+bleConnectButton.addEventListener("click", connectDartsliveHome);
 document.addEventListener("keydown", receiveHID, false);
 document.addEventListener("gesturestart", e => e.preventDefault());
 document.addEventListener("gesturechange", e => e.preventDefault());
@@ -799,6 +907,9 @@ document.addEventListener("gestureend", e => e.preventDefault());
 setMode("BULL");
 updateSettingUI();
 render();
+if (!navigator.bluetooth) {
+  bleStatus.textContent = "Web Bluetooth未対応のブラウザです。iPhoneではbeacio等のブリッジ環境が必要です。";
+}
 })();
 </script>
 </body>
