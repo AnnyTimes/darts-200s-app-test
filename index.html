@@ -101,6 +101,31 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .score-number{font-size:68px} .out-button{width:72px;min-height:72px} .history{max-height:230px} .history-item{font-size:12px}
 .target-buttons{grid-template-columns:repeat(3,1fr)}
 }
+
+/* ver4.1: keep all three throws + round total visible on mobile */
+.history-round {
+  width: 100%;
+  min-width: 0;
+}
+.history-round .history-darts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.history-round .history-round-total {
+  margin-top: 6px;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .history-round .history-darts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .history-round .history-dart,
+  .history-round .history-round-total {
+    min-width: 0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -900,10 +925,6 @@ resultPlayAgainButton.addEventListener("click", startGame);
 
 bleConnectButton.addEventListener("click", connectDartsliveHome);
 document.addEventListener("keydown", receiveHID, false);
-document.addEventListener("gesturestart", e => e.preventDefault());
-document.addEventListener("gesturechange", e => e.preventDefault());
-document.addEventListener("gestureend", e => e.preventDefault());
-
 setMode("BULL");
 updateSettingUI();
 render();
