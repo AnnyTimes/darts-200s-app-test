@@ -49,7 +49,9 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .score-goal{color:#8996a0;font-size:13px;margin-top:8px}
 .out-area{display:flex;justify-content:center}
 .out-button{width:82px;min-height:82px;border-radius:12px;border:2px solid #bd3442;background:#170d10;color:#ef5a65;font-weight:900;font-size:18px}
-.play-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.play-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.result-action{border-color:#3c87bd!important;background:#122c3e!important}
+.result-wide{grid-column:1 / -1}
 .action-button{min-height:48px;border-radius:11px;border:1px solid #35444f;background:#101a22;color:#fff;font-weight:700}
 .action-button.undo{border-color:#4a6680} .action-button.reset{border-color:#663b40}
 .last-input{margin-top:12px;color:#8c99a3;font-size:12px;text-align:center;min-height:18px}
@@ -57,10 +59,10 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .finished-score{color:#42a7e8;font-size:18px} .back-button{width:100%;height:52px;margin-top:18px;border-radius:11px;border:1px solid #40515e;background:#101a22;color:#fff;font-weight:800}
 
 .history{min-width:0}
-.history-scroll{max-height:260px;overflow:auto;padding-right:3px;scroll-behavior:auto}
-.history-table{width:100%;min-width:330px;border-collapse:separate;border-spacing:0 5px;font-size:11px}
+.history-scroll{max-height:260px;overflow:auto;padding-right:3px;scroll-behavior:auto;overscroll-behavior:contain}
+.history-table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0 5px;font-size:11px}
 .history-table th{color:#74818c;font-weight:700;text-align:center;padding:0 4px 3px;white-space:nowrap}
-.history-table td{background:#0b1218;border-top:1px solid #22303a;border-bottom:1px solid #22303a;padding:6px 5px;text-align:center;white-space:nowrap}
+.history-table td{background:#0b1218;border-top:1px solid #22303a;border-bottom:1px solid #22303a;padding:6px 3px;text-align:center;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
 .history-table td:first-child{border-left:1px solid #22303a;border-radius:8px 0 0 8px;color:#788692}
 .history-table td:last-child{border-right:1px solid #22303a;border-radius:0 8px 8px 0;font-weight:800}
 .history-table .positive{color:#42a7e8}.history-table .negative{color:#e14a57}.history-table .zero{color:#9da7ae}
@@ -97,35 +99,12 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .result-stat-card .big{font-size:20px}
 }
 @media(max-width:520px){
-.app{padding:14px 12px 26px} .score-area{grid-template-columns:70px 1fr 82px;min-height:240px}
-.score-number{font-size:68px} .out-button{width:72px;min-height:72px} .history{max-height:230px} .history-item{font-size:12px}
+.app{padding:14px 12px 26px} .score-area{grid-template-columns:1fr 82px;grid-template-rows:auto auto;min-height:0;align-items:center;row-gap:10px}
+.score{grid-column:1;grid-row:1}.out-area{grid-column:2;grid-row:1}.history{grid-column:1 / -1;grid-row:2;max-height:230px;width:100%}
+.score-number{font-size:68px} .out-button{width:72px;min-height:72px} .history-item{font-size:12px}
 .target-buttons{grid-template-columns:repeat(3,1fr)}
+.history-table{font-size:10px}.history-table th{padding-left:2px;padding-right:2px}.history-table td{padding-left:2px;padding-right:2px}
 }
-
-/* ver4.1: keep all three throws + round total visible on mobile */
-.history-round {
-  width: 100%;
-  min-width: 0;
-}
-.history-round .history-darts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-.history-round .history-round-total {
-  margin-top: 6px;
-  width: 100%;
-}
-@media (max-width: 600px) {
-  .history-round .history-darts {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .history-round .history-dart,
-  .history-round .history-round-total {
-    min-width: 0;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -235,7 +214,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
       <div class="score"><div id="scoreNumber" class="score-number">0</div><div id="scoreGoal" class="score-goal"></div></div>
       <div class="out-area"><button id="outButton" class="out-button" type="button">OUT</button></div>
     </div>
-    <div class="play-actions"><button id="undoButton" class="action-button undo" type="button">戻す</button><button id="resetButton" class="action-button reset" type="button">RESET</button></div>
+    <div class="play-actions"><button id="undoButton" class="action-button undo" type="button">戻す</button><button id="resetButton" class="action-button reset" type="button">RESET</button><button id="playResultButton" class="action-button result-action" type="button">リザルト</button></div>
     <div id="lastInput" class="last-input"></div>
   </div>
   <div id="finishedCard" class="card hidden"><div class="finished"><div class="finished-title">GOAL!</div><div id="finishedScore" class="finished-score"></div><button id="resultButton" class="back-button" type="button">リザルトを見る</button></div></div>
@@ -289,10 +268,11 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
     </div>
 
     <div class="result-actions">
-      <button id="resultPlayAgainButton" class="primary" type="button">もう一度プレイ</button>
-      <button id="resultSettingsButton" type="button">設定に戻る</button>
+      <button id="resultReturnPlayButton" class="primary" type="button">プレイに戻る</button>
+      <button id="resultPlayAgainButton" type="button">もう一度プレイ</button>
+      <button id="resultSettingsButton" class="result-wide" type="button">設定に戻る</button>
     </div>
-    <div class="result-note">このプレイの投擲結果を集計しています</div>
+    <div class="result-note">プレイ途中でも確認できます。戻ると同じプレイを続けられます。</div>
   </div>
 </section>
 </div>
@@ -442,7 +422,8 @@ const backSettingsButton = $("backSettingsButton"), lastInput = $("lastInput");
 const finishedCard = $("finishedCard"), finishedScore = $("finishedScore"), resultButton = $("resultButton");
 const resultScreen = $("resultScreen"), resultMode = $("resultMode"), resultScore = $("resultScore"), resultGoal = $("resultGoal"), resultRounds = $("resultRounds");
 const bullResult = $("bullResult"), cricketResult = $("cricketResult");
-const resultPlayAgainButton = $("resultPlayAgainButton"), resultSettingsButton = $("resultSettingsButton");
+const playResultButton = $("playResultButton");
+const resultReturnPlayButton = $("resultReturnPlayButton"), resultPlayAgainButton = $("resultPlayAgainButton"), resultSettingsButton = $("resultSettingsButton");
 
 function formatValue(v) { return v > 0 ? "+" + v : String(v); }
 function clamp(v, min=-999, max=9999) { return Math.max(min, Math.min(max, Math.trunc(v))); }
@@ -625,7 +606,7 @@ async function prepareWebAudio() {
     if (!AudioCtx) return;
     try { audioContext = new AudioCtx(); } catch (_) { audioContext = null; return; }
   }
-  try { if (audioContext.state === "suspended") await audioContext.resume(); } catch (_) {}
+  try { if (audioContext.state === "suspended" || audioContext.state === "interrupted") await audioContext.resume(); } catch (_) {}
   const entries = Object.entries(audioFiles);
   await Promise.all(entries.map(async ([id, file]) => {
     if (audioBuffers[id]) return;
@@ -638,16 +619,31 @@ async function prepareWebAudio() {
   }));
 }
 
-function playOne(id, when=0) {
+async function ensureAudioContext() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return null;
+  if (!audioContext || audioContext.state === "closed") {
+    try { audioContext = new AudioCtx(); } catch (_) { audioContext = null; return null; }
+  }
+  try {
+    if (audioContext.state === "suspended" || audioContext.state === "interrupted") {
+      await audioContext.resume();
+    }
+  } catch (_) {}
+  return audioContext;
+}
+
+async function playOne(id, when=0) {
+  const ctx = await ensureAudioContext();
   const buffer = audioBuffers[id];
-  if (audioContext && buffer) {
+  if (ctx && buffer && ctx.state === "running") {
     try {
-      if (audioContext.state === "suspended") audioContext.resume();
-      const source = audioContext.createBufferSource();
+      const source = ctx.createBufferSource();
       source.buffer = buffer;
-      source.connect(audioContext.destination);
-      source.start(Math.max(audioContext.currentTime, audioContext.currentTime + when));
-      return Promise.resolve();
+      source.connect(ctx.destination);
+      const startAt = Math.max(ctx.currentTime, ctx.currentTime + when);
+      source.start(startAt);
+      return;
     } catch (_) {}
   }
   const audio = $(id);
@@ -760,7 +756,7 @@ function renderHistory() {
   }
   const table = document.createElement("table");
   table.className = "history-table";
-  table.innerHTML = '<thead><tr><th>R</th><th>1投目</th><th>2投目</th><th>3投目</th><th>合計</th></tr></thead>';
+  table.innerHTML = '<colgroup><col style="width:9%"><col style="width:22.75%"><col style="width:22.75%"><col style="width:22.75%"><col style="width:22.75%"></colgroup><thead><tr><th>R</th><th>1投目</th><th>2投目</th><th>3投目</th><th>合計</th></tr></thead>';
   const tbody = document.createElement("tbody");
   for (let i = 0; i < history.length; i += 3) {
     const round = history.slice(i, i + 3);
@@ -918,13 +914,31 @@ function showResultScreen() {
   playScreen.classList.add("hidden");
   resultScreen.classList.remove("hidden");
 }
+function returnToPlay() {
+  resultScreen.classList.add("hidden");
+  playScreen.classList.remove("hidden");
+}
 backSettingsButton.addEventListener("click", returnToSettings);
+playResultButton.addEventListener("click", showResultScreen);
 resultButton.addEventListener("click", showResultScreen);
+resultReturnPlayButton.addEventListener("click", returnToPlay);
 resultSettingsButton.addEventListener("click", returnToSettings);
 resultPlayAgainButton.addEventListener("click", startGame);
 
 bleConnectButton.addEventListener("click", connectDartsliveHome);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && seUnlocked) {
+    void prepareWebAudio();
+  }
+});
+window.addEventListener("pageshow", () => {
+  if (seUnlocked) void prepareWebAudio();
+});
 document.addEventListener("keydown", receiveHID, false);
+document.addEventListener("gesturestart", e => e.preventDefault());
+document.addEventListener("gesturechange", e => e.preventDefault());
+document.addEventListener("gestureend", e => e.preventDefault());
+
 setMode("BULL");
 updateSettingUI();
 render();
