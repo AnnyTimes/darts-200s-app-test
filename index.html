@@ -406,7 +406,10 @@ const settings = {
 
 let mode = "BULL", goal = 50, cricketTarget = "20", score = 0, history = [];
 let inputBuffer = [], inputTimer = null, seUnlocked = false, finished = false;
+let inputBlockedUntil = 0;
 const GROUP_WINDOW = 80;
+const DUPLICATE_INPUT_INTERVAL = 180; // 1投の直後に来る重複信号を無視
+const ROUND_END_INTERVAL = 900; // 3投目の後、矢を抜く間の誤入力を無視
 
 const $ = id => document.getElementById(id);
 const settingsScreen = $("settingsScreen"), playScreen = $("playScreen");
@@ -676,6 +679,8 @@ function playSE(target, area) {
 
 function receiveHID(event) {
   if (event.repeat) return;
+  // Shift+キーの組み合わせは1投として処理するため、受付停止は投の確定後に開始する。
+  if (performance.now() < inputBlockedUntil) return;
   markConnectionOK();
 
   const item = {key:event.key, code:event.code, keyCode:event.keyCode, time:performance.now()};
@@ -699,6 +704,13 @@ function receiveHID(event) {
   processBufferedInput();
 }
 
+function armInputCooldown() {
+  const interval = history.length > 0 && history.length % 3 === 0
+    ? ROUND_END_INTERVAL
+    : DUPLICATE_INPUT_INTERVAL;
+  inputBlockedUntil = performance.now() + interval;
+}
+
 function processBufferedInput() {
   inputTimer = null;
   if (!inputBuffer.length) return;
@@ -708,6 +720,7 @@ function processBufferedInput() {
   if (!mapped) {
     const value = mode === "BULL" ? settings.bullOther : settings.cricketOther;
     addResult("OTHER", "other", value, "HID");
+    armInputCooldown();
     lastInput.textContent = "HID: その他  " + formatValue(value);
     void playOne("seArrow");
     return;
@@ -715,12 +728,14 @@ function processBufferedInput() {
   const [target, area] = mapped;
   const value = getScoreValue(target, area);
   addResult(target, area, value, "HID");
+  armInputCooldown();
   lastInput.textContent = "HID: " + targetLabel(target) + " " + areaLabel(area) + "  " + formatValue(value);
   void playSE(target, area);
 }
 
 outButton.addEventListener("click", () => {
   addResult("OUT", "other", mode === "BULL" ? settings.bullOther : settings.cricketOther, "OUT");
+  armInputCooldown();
   lastInput.textContent = "OUT  " + formatValue(mode === "BULL" ? settings.bullOther : settings.cricketOther);
   void playOne("seArrow");
 });
@@ -736,7 +751,7 @@ undoButton.addEventListener("click", () => {
 });
 
 resetButton.addEventListener("click", () => {
-  score = 0; history = []; finished = false;
+  score = 0; history = []; finished = false; inputBlockedUntil = 0;
   finishedCard.classList.add("hidden");
   lastInput.textContent = "RESET";
   render();
@@ -891,7 +906,7 @@ function startGame() {
   unlockAudio();
   goal = mode === "BULL" ? settings.bullGoal : settings.cricketGoal;
   cricketTarget = settings.cricketTarget;
-  score = 0; history = []; finished = false; lastInput.textContent = "";
+  score = 0; history = []; finished = false; inputBlockedUntil = 0; lastInput.textContent = "";
   settingsScreen.classList.add("hidden");
   resultScreen.classList.add("hidden");
   playScreen.classList.remove("hidden");
