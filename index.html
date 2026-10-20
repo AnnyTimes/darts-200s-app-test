@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>DARTS PRACTICE ver4</title>
+<title>DARTS PRACTICE ver4.8</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:#070b10;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;touch-action:manipulation}
@@ -26,6 +26,10 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .ble-status.ok{color:#42d27a}
 
 .mode-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pro-entry-button{grid-column:1 / -1;height:48px;border-radius:12px;border:1px solid #7a3440;background:#211016;color:#fff;font-weight:800}
+.pro-test-row{width:100%;text-align:left;background:#0b1218;border:1px solid #334451;border-radius:12px;color:#fff;padding:13px;margin:8px 0}
+.pro-test-row strong{display:block;font-size:15px;margin-bottom:5px}.pro-test-row small{display:block;color:#9eabb6;line-height:1.45}.pro-passes{display:flex;gap:6px;margin-top:9px}.pro-pass-dot{display:inline-flex;width:23px;height:23px;border-radius:50%;align-items:center;justify-content:center;border:1px solid #465663;color:#788692;font-size:12px}.pro-pass-dot.done{background:#123c2a;border-color:#24b86a;color:#50e294}
+.current-bull-rate{font-size:14px;color:#42a7e8;text-align:center;font-weight:800;margin:0 0 10px;min-height:18px}
 .mode-button{height:52px;border-radius:12px;border:1px solid #334451;background:#0b1218;color:#aeb9c2;font-weight:800}
 .mode-button.active{border-color:#3c87bd;background:#122c3e;color:#fff}
 .setting-row{border-top:1px solid #26333d;padding:13px 0}
@@ -127,6 +131,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
     <div class="mode-buttons">
       <button id="bullModeButton" class="mode-button active" type="button">BULL</button>
       <button id="cricketModeButton" class="mode-button" type="button">CRICKET</button>
+      <button id="proTestEntryButton" class="pro-entry-button" type="button">PRO TEST MODE</button>
     </div>
 
     <div id="bullSettings">
@@ -205,10 +210,23 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
   </div>
 </section>
 
+<section id="proConfigScreen" class="hidden">
+  <div class="card">
+    <div class="card-title">JAPAN PRO TEST · TEST IMPLEMENTATION</div>
+    <div style="font-size:12px;color:#9eabb6;line-height:1.5;margin-bottom:12px">男子基準の練習用判定。合格印はこの端末のブラウザに保存されます。</div>
+    <button class="pro-test-row" data-pro-game="SHOOTOUT" type="button"><strong>JAPAN SHOOT OUT</strong><small>8ラウンド · 5,500点以上</small><span id="proPassShootout" class="pro-passes"></span></button>
+    <button class="pro-test-row" data-pro-game="JAPAN01" type="button"><strong>JAPAN 01</strong><small>701 · セパレートブル · Open In / Master Out · 7ラウンド以内を2回</small><span id="proPassJapan01" class="pro-passes"></span></button>
+    <button class="pro-test-row" data-pro-game="CRICKETCU" type="button"><strong>JAPAN CRICKET COUNT-UP（クリカン）</strong><small>8ラウンド · MPR 5.10以上を2回</small><span id="proPassCricket" class="pro-passes"></span></button>
+    <button class="pro-test-row" data-pro-game="PERFECT01" type="button"><strong>PERFECT 01</strong><small>501 · セパレートブル · Open In / Double Out · 8ラウンド以内を最大5回</small><span id="proPassPerfect" class="pro-passes"></span></button>
+    <button id="proConfigBackButton" class="action-button" style="width:100%;margin-top:8px" type="button">通常モードへ戻る</button>
+  </div>
+</section>
+
 <section id="playScreen" class="hidden">
   <div class="card">
     <div class="play-header"><span id="playMode" class="play-mode"></span><button id="backSettingsButton" class="action-button" type="button">SETTINGS</button></div>
     <div id="playTarget" class="target-label"></div>
+    <div id="currentBullRate" class="current-bull-rate hidden">現在のブル率：0.00%（0 / 0）</div>
     <div class="score-area">
       <div class="history"><div class="history-title">HISTORY</div><div id="historyScroll" class="history-scroll"><div id="historyList"></div></div></div>
       <div class="score"><div id="scoreNumber" class="score-number">0</div><div id="scoreGoal" class="score-goal"></div></div>
@@ -217,7 +235,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
     <div class="play-actions"><button id="undoButton" class="action-button undo" type="button">UNDO</button><button id="resetButton" class="action-button reset" type="button">RESET</button><button id="playResultButton" class="action-button result-action" type="button">RESULT</button></div>
     <div id="lastInput" class="last-input"></div>
   </div>
-  <div id="finishedCard" class="card hidden"><div class="finished"><div class="finished-title">GOAL!</div><div id="finishedScore" class="finished-score"></div><button id="resultButton" class="back-button" type="button">VIEW RESULT</button></div></div>
+  <div id="finishedCard" class="card hidden"><div class="finished"><div id="finishedTitle" class="finished-title">GOAL!</div><div id="finishedScore" class="finished-score"></div><button id="resultButton" class="back-button" type="button">VIEW RESULT</button></div></div>
 </section>
 
 <section id="resultScreen" class="hidden">
@@ -263,7 +281,10 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
         <div class="result-stat-card"><div class="label">TRIPLE RATE</div><div id="cricketTripleRate" class="big">0%</div><div id="cricketTripleCount" class="small">0 / 0 throws</div></div>
       </div>
 
-      <div class="result-section-title">MARKS PER THROW</div>
+      <div class="result-section-title">MARKS PER ROUND</div>
+      <div class="result-dual">
+        <div class="result-stat-card"><div class="label">AVG MARKS / ROUND</div><div id="cricketAvgMarksPerRound" class="big">0.00</div><div id="cricketRoundCount" class="small">0 rounds</div></div>
+      </div>
       <div id="cricketMarkGrid" class="result-mark-grid"></div>
     </div>
 
@@ -408,6 +429,9 @@ const settings = {
 };
 
 let mode = "BULL", goal = 50, cricketTarget = "20", score = 0, history = [];
+let proGame = null, proAttempt = 1, proShooutoutOpened = new Set(), proShootoutOpenAreas = 0, proCompleted = false;
+const PRO_PASS_KEY = "dartsPracticeProPasses_v1";
+let proPasses = loadProPasses();
 let inputBuffer = [], inputTimer = null, seUnlocked = false, finished = false;
 let inputBlockedUntil = 0;
 const GROUP_WINDOW = 80;
@@ -415,7 +439,8 @@ const DUPLICATE_INPUT_INTERVAL = 180; // 1投の直後に来る重複信号を�
 const ROUND_END_INTERVAL = 900; // 3投目の後、矢を抜く間の誤入力を無視
 
 const $ = id => document.getElementById(id);
-const settingsScreen = $("settingsScreen"), playScreen = $("playScreen");
+const settingsScreen = $("settingsScreen"), playScreen = $("playScreen"), proConfigScreen = $("proConfigScreen");
+const proTestEntryButton = $("proTestEntryButton"), proConfigBackButton = $("proConfigBackButton"), currentBullRate = $("currentBullRate");
 const connectionStatus = $("connectionStatus"), connectionText = $("connectionText"), connectionNote = $("connectionNote");
 const bleConnectButton = $("bleConnectButton"), bleStatus = $("bleStatus");
 const bullModeButton = $("bullModeButton"), cricketModeButton = $("cricketModeButton");
@@ -425,7 +450,7 @@ const startButton = $("startButton"), playMode = $("playMode"), playTarget = $("
 const scoreNumber = $("scoreNumber"), scoreGoal = $("scoreGoal"), historyList = $("historyList"), historyScroll = $("historyScroll");
 const outButton = $("outButton"), undoButton = $("undoButton"), resetButton = $("resetButton");
 const backSettingsButton = $("backSettingsButton"), lastInput = $("lastInput");
-const finishedCard = $("finishedCard"), finishedScore = $("finishedScore"), resultButton = $("resultButton");
+const finishedCard = $("finishedCard"), finishedScore = $("finishedScore"), resultButton = $("resultButton"), finishedTitle = $("finishedTitle");
 const resultScreen = $("resultScreen"), resultMode = $("resultMode"), resultScore = $("resultScore"), resultGoal = $("resultGoal"), resultRounds = $("resultRounds");
 const bullResult = $("bullResult"), cricketResult = $("cricketResult");
 const playResultButton = $("playResultButton");
@@ -458,6 +483,31 @@ targetButtons.forEach(button => {
     updateSettingUI();
   });
 });
+
+function loadProPasses() {
+  const blank = {SHOOTOUT:[false], JAPAN01:[false,false], CRICKETCU:[false,false], PERFECT01:[false]};
+  try {
+    const saved = JSON.parse(localStorage.getItem(PRO_PASS_KEY) || "null");
+    if (saved && typeof saved === "object") Object.keys(blank).forEach(k => { if (Array.isArray(saved[k])) blank[k] = blank[k].slice(0,saved[k].length).map(Boolean).concat(blank[k].slice(saved[k].length)); });
+  } catch (_) {}
+  return blank;
+}
+function saveProPasses() { try { localStorage.setItem(PRO_PASS_KEY, JSON.stringify(proPasses)); } catch (_) {} }
+function renderProPasses() {
+  const ids = {SHOOTOUT:"proPassShootout", JAPAN01:"proPassJapan01", CRICKETCU:"proPassCricket", PERFECT01:"proPassPerfect"};
+  Object.entries(ids).forEach(([key,id]) => {
+    const el = $(id); el.innerHTML = "";
+    proPasses[key].forEach((done,i) => { const dot=document.createElement("span"); dot.className="pro-pass-dot"+(done?" done":""); dot.textContent=done?"✓":String(i+1); el.appendChild(dot); });
+  });
+}
+function showProConfig() {
+  settingsScreen.classList.add("hidden"); playScreen.classList.add("hidden"); resultScreen.classList.add("hidden"); proConfigScreen.classList.remove("hidden");
+  renderProPasses();
+}
+function leaveProConfig() { proConfigScreen.classList.add("hidden"); settingsScreen.classList.remove("hidden"); }
+proTestEntryButton.addEventListener("click", showProConfig);
+proConfigBackButton.addEventListener("click", leaveProConfig);
+proConfigScreen.querySelectorAll("[data-pro-game]").forEach(button => button.addEventListener("click", () => startProGame(button.dataset.proGame)));
 
 function setMode(next) {
   mode = next;
@@ -579,10 +629,45 @@ function targetLabel(target) { return target === "bull" ? "BULL" : target; }
 
 function addResult(target, area, value, source) {
   const before = score;
-  score += value;
-  history.push({target, area, value, before, after: score, source});
+  let actualValue = value;
+  if (proGame) {
+    const throwNo = history.length + 1;
+    if (proGame === "JAPAN01" || proGame === "PERFECT01") {
+      const numeric = target === "bull" ? (area === "inner" ? 50 : 25) : (Number(target) || 0) * ({outer:1,inner:1,double:2,triple:3}[area] || 0);
+      const isOut = proGame === "JAPAN01" ? (area === "double" || area === "triple" || target === "bull") : (area === "double" || (target === "bull" && area === "inner"));
+      const remaining = score - numeric;
+      const bust = remaining < 0 || remaining === 1 || (remaining === 0 && !isOut);
+      if (bust) { actualValue = 0; score = before; }
+      else { actualValue = -numeric; score = remaining; }
+      history.push({target, area, value:actualValue, scored:numeric, bust, before, after:score, source});
+    } else if (proGame === "CRICKETCU") {
+      const n = target === "bull" ? 25 : Number(target);
+      const mult = target === "bull" ? (area === "inner" ? 2 : area === "outer" ? 1 : 0) : ({outer:1,inner:1,double:2,triple:3}[area] || 0);
+      actualValue = (n >= 15 && n <= 20 || target === "bull") ? n * mult : 0;
+      score += actualValue;
+      history.push({target, area, value:actualValue, before, after:score, source});
+    } else if (proGame === "SHOOTOUT") {
+      const n = Number(target);
+      if (n >= 1 && n <= 20 && !proShooutoutOpened.has(n)) {
+        const opened = ({outer:1,inner:1,double:2,triple:3}[area] || 0);
+        actualValue = n * (proShootoutOpenAreas + opened);
+        proShootoutOpenAreas += opened;
+        proShooutoutOpened.add(n);
+      } else if (target === "bull" && proShooutoutOpened.size >= 20) {
+        actualValue = (area === "inner" ? 50 : 25) * Math.max(1, proShootoutOpenAreas);
+      } else actualValue = 0;
+      score += actualValue;
+      history.push({target, area, value:actualValue, before, after:score, source});
+    }
+  } else {
+    score += value;
+    history.push({target, area, value, before, after:score, source});
+  }
   render();
-  if (score >= goal) finishGame();
+  if (proGame) {
+    if ((proGame === "JAPAN01" || proGame === "PERFECT01") && score === 0) finishProGame(true);
+    else if ((proGame === "JAPAN01" && history.length >= 21) || (proGame === "PERFECT01" && history.length >= 24) || ((proGame === "SHOOTOUT" || proGame === "CRICKETCU") && history.length >= 24)) finishProGame(false);
+  } else if (score >= goal) finishGame();
 }
 
 function unlockAudio() {
@@ -805,6 +890,8 @@ undoButton.addEventListener("click", () => {
   cancelRoundEndSounds();
   const item = history.pop();
   score = item.before;
+  if (proGame === "SHOOTOUT") { const seen = new Set(); proShootoutOpenAreas = history.reduce((sum,x)=>{ const n=Number(x.target); if(n>=1 && n<=20 && !seen.has(n)){ seen.add(n); return sum+({outer:1,inner:1,double:2,triple:3}[x.area]||0); } return sum; },0); proShooutoutOpened = seen; }
+  proCompleted = false;
   finished = false;
   finishedCard.classList.add("hidden");
   render();
@@ -813,7 +900,10 @@ undoButton.addEventListener("click", () => {
 
 resetButton.addEventListener("click", () => {
   cancelRoundEndSounds();
-  score = 0; history = []; finished = false; inputBlockedUntil = 0;
+  if (proGame === "JAPAN01") score = 701;
+  else if (proGame === "PERFECT01") score = 501;
+  else score = 0;
+  history = []; proShooutoutOpened = new Set(); proShootoutOpenAreas = 0; proCompleted = false; finished = false; inputBlockedUntil = 0;
   finishedCard.classList.add("hidden");
   lastInput.textContent = "RESET";
   render();
@@ -869,7 +959,12 @@ function renderHistory() {
 
 function render() {
   scoreNumber.textContent = score;
-  scoreGoal.textContent = "GOAL " + goal;
+  scoreGoal.textContent = proGame ? (proGame === "JAPAN01" || proGame === "PERFECT01" ? "REMAINING" : "SCORE / " + (proGame === "SHOOTOUT" ? "5500 GOAL" : proGame === "CRICKETCU" ? "MPR 5.10 GOAL" : "GOAL")) : "GOAL " + goal;
+  if (!proGame && mode === "BULL") {
+    const bulls = history.filter(isBull).length;
+    currentBullRate.textContent = "現在のブル率：" + (history.length ? (bulls / history.length * 100).toFixed(2) : "0.00") + "%（" + bulls + " / " + history.length + "）";
+    currentBullRate.classList.remove("hidden");
+  } else currentBullRate.classList.add("hidden");
   renderHistory();
 }
 
@@ -926,23 +1021,33 @@ function updateBullResult() {
 }
 
 function updateCricketResult() {
-  const marks = history.map(cricketMarks);
-  const total = marks.length;
-  const hits = marks.filter(m => m >= 1).length;
-  const triples = marks.filter(m => m === 3).length;
-  $("cricketHitRate").textContent = percent(hits, total);
-  $("cricketTripleRate").textContent = percent(triples, total);
-  $("cricketHitCount").textContent = hits + " / " + total + " throws";
-  $("cricketTripleCount").textContent = triples + " / " + total + " throws";
+  // Hit/triple rates remain per throw; distribution and average below are per 3-dart round.
+  const throwMarks = history.map(cricketMarks);
+  const totalThrows = throwMarks.length;
+  const hits = throwMarks.filter(m => m >= 1).length;
+  const triples = throwMarks.filter(m => m === 3).length;
+  $("cricketHitRate").textContent = percent(hits, totalThrows);
+  $("cricketTripleRate").textContent = percent(triples, totalThrows);
+  $("cricketHitCount").textContent = hits + " / " + totalThrows + " throws";
+  $("cricketTripleCount").textContent = triples + " / " + totalThrows + " throws";
+
+  const roundMarks = [];
+  for (let i = 0; i < throwMarks.length; i += 3) {
+    roundMarks.push(throwMarks.slice(i, i + 3).reduce((sum, marks) => sum + marks, 0));
+  }
+  const roundCount = roundMarks.length;
+  const totalRoundMarks = roundMarks.reduce((sum, marks) => sum + marks, 0);
+  $("cricketAvgMarksPerRound").textContent = roundCount ? (totalRoundMarks / roundCount).toFixed(2) : "0.00";
+  $("cricketRoundCount").textContent = roundCount + (roundCount === 1 ? " round" : " rounds");
 
   const counts = Array(10).fill(0);
-  marks.forEach(m => { if (m >= 0 && m <= 9) counts[m]++; });
+  roundMarks.forEach(marks => { if (marks >= 0 && marks <= 9) counts[marks]++; });
   const grid = $("cricketMarkGrid");
   grid.innerHTML = "";
   counts.forEach((count, mark) => {
     const card = document.createElement("div");
     card.className = "result-mark-card";
-    card.innerHTML = '<div class="mark">' + mark + ' MARKS</div><div class="count">' + count + '</div><div class="unit">times</div>';
+    card.innerHTML = '<div class="mark">' + mark + ' MARKS / ROUND</div><div class="count">' + count + '</div><div class="unit">times</div>';
     grid.appendChild(card);
   });
 }
@@ -964,7 +1069,51 @@ function finishGame() {
   finishedScore.textContent = "SCORE " + score + " / GOAL " + goal;
 }
 
+function startProGame(game) {
+  proGame = game; playResultButton.classList.add("hidden"); proCompleted = false; proShooutoutOpened = new Set(); proShootoutOpenAreas = 0;
+  proConfigScreen.classList.add("hidden"); settingsScreen.classList.add("hidden"); resultScreen.classList.add("hidden"); playScreen.classList.remove("hidden");
+  cancelRoundEndSounds(); unlockAudio(); history=[]; inputBlockedUntil=0; finished=false; lastInput.textContent=""; finishedCard.classList.add("hidden"); finishedTitle.textContent="GOAL!";
+  proAttempt = 1;
+  if (game === "SHOOTOUT") { score=0; goal=5500; playMode.textContent="JAPAN SHOOT OUT"; playTarget.textContent="8 ROUNDS · 5,500 POINTS"; }
+  if (game === "JAPAN01") { score=701; goal=0; playMode.textContent="JAPAN 01"; playTarget.textContent="701 · 7 ROUNDS · MASTER OUT"; }
+  if (game === "CRICKETCU") { score=0; goal=5.1; playMode.textContent="JAPAN CRICKET COUNT-UP"; playTarget.textContent="8 ROUNDS · MPR 5.10"; }
+  if (game === "PERFECT01") { score=501; goal=0; playMode.textContent="PERFECT 01 · ATTEMPT 1/5"; playTarget.textContent="501 · 8 ROUNDS · DOUBLE OUT"; }
+  render();
+}
+function finishProGame(won) {
+  if (proCompleted) return;
+  proCompleted = true; finished = true; finishedCard.classList.remove("hidden");
+  const rounds = Math.ceil(history.length / 3);
+  let passed = false, detail = "";
+  if (proGame === "SHOOTOUT") { passed = score >= 5500; detail = "SCORE " + score + " / 5500"; }
+  if (proGame === "JAPAN01") { passed = won && history.length <= 21; detail = "701 · " + rounds + " ROUNDS"; }
+  if (proGame === "CRICKETCU") { const mpr = history.reduce((sum,x)=>sum + ((x.target === "bull" || Number(x.target)>=15 && Number(x.target)<=20) ? (x.target === "bull" ? (x.area === "inner" ? 2 : x.area === "outer" ? 1 : 0) : ({outer:1,inner:1,double:2,triple:3}[x.area]||0)) : 0),0) / 8; passed = mpr >= 5.1; detail = "MPR " + mpr.toFixed(2) + " / 5.10"; }
+  if (proGame === "PERFECT01") { passed = won && history.length <= 24; detail = "501 · " + rounds + " ROUNDS"; }
+  if (passed) {
+    const arr = proPasses[proGame];
+    const idx = arr.findIndex(x => !x);
+    if (idx >= 0) arr[idx] = true;
+    saveProPasses();
+  }
+  if (proGame === "PERFECT01" && !passed && proAttempt < 5) {
+    const nextAttempt = proAttempt + 1;
+    finishedCard.classList.add("hidden");
+    setTimeout(() => {
+      if (proGame !== "PERFECT01") return;
+      proCompleted = false; finished = false; proAttempt = nextAttempt; history=[]; score=501; inputBlockedUntil=0; lastInput.textContent="";
+      playMode.textContent="PERFECT 01 · ATTEMPT " + proAttempt + "/5"; playTarget.textContent="501 · 8 ROUNDS · DOUBLE OUT"; render();
+    }, 700);
+    return;
+  }
+  finishedTitle.textContent = passed ? "PASS!" : "NOT YET";
+  finishedScore.textContent = (passed ? "PASS ✓ · " : "NOT YET · ") + detail;
+  resultButton.textContent = "BACK TO PRO TEST";
+  renderProPasses();
+}
+
 function startGame() {
+  proGame = null; proCompleted = false; playResultButton.classList.remove("hidden"); resultButton.textContent = "VIEW RESULT";
+  proConfigScreen.classList.add("hidden");
   cancelRoundEndSounds();
   unlockAudio();
   goal = mode === "BULL" ? settings.bullGoal : settings.cricketGoal;
@@ -974,6 +1123,7 @@ function startGame() {
   resultScreen.classList.add("hidden");
   playScreen.classList.remove("hidden");
   finishedCard.classList.add("hidden");
+  finishedTitle.textContent = "GOAL!";
   playMode.textContent = mode;
   playTarget.textContent = mode === "BULL" ? "BULL" : "TARGET " + cricketTarget;
   render();
@@ -982,6 +1132,7 @@ function startGame() {
 startButton.addEventListener("click", startGame);
 
 function returnToSettings() {
+  if (proGame) { proGame = null; playScreen.classList.add("hidden"); showProConfig(); return; }
   playScreen.classList.add("hidden");
   resultScreen.classList.add("hidden");
   settingsScreen.classList.remove("hidden");
@@ -998,7 +1149,10 @@ function returnToPlay() {
 }
 backSettingsButton.addEventListener("click", returnToSettings);
 playResultButton.addEventListener("click", showResultScreen);
-resultButton.addEventListener("click", showResultScreen);
+resultButton.addEventListener("click", () => {
+  if (proGame) { finishedCard.classList.add("hidden"); playScreen.classList.add("hidden"); playResultButton.classList.remove("hidden"); proGame = null; showProConfig(); }
+  else showResultScreen();
+});
 resultReturnPlayButton.addEventListener("click", returnToPlay);
 resultSettingsButton.addEventListener("click", returnToSettings);
 resultPlayAgainButton.addEventListener("click", startGame);
