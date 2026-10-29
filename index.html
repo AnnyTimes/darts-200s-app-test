@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>DARTS PRACTICE ver4.8</title>
+<title>DARTS PRACTICE ver4.9</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:#070b10;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;touch-action:manipulation}
@@ -63,7 +63,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 .finished-score{color:#42a7e8;font-size:18px} .back-button{width:100%;height:52px;margin-top:18px;border-radius:11px;border:1px solid #40515e;background:#101a22;color:#fff;font-weight:800}
 
 .history{min-width:0;max-height:none;overflow:visible}
-.history-scroll{height:auto;max-height:260px;overflow-y:auto;overflow-x:hidden;padding-right:3px;scroll-behavior:auto;overscroll-behavior:contain;scroll-padding-bottom:8px}
+.history-scroll{height:clamp(145px,28vh,260px);min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:3px;padding-bottom:18px;scroll-behavior:auto;overscroll-behavior:contain;scroll-padding-bottom:18px}
 .history-table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0 5px;font-size:11px}
 .history-table th{color:#74818c;font-weight:700;text-align:center;padding:0 4px 3px;white-space:nowrap}
 .history-table td{background:#0b1218;border-top:1px solid #22303a;border-bottom:1px solid #22303a;padding:6px 3px;text-align:center;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
@@ -104,7 +104,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
 }
 @media(max-width:520px){
 .app{padding:14px 12px 26px} .score-area{grid-template-columns:1fr 82px;grid-template-rows:auto auto;min-height:0;align-items:center;row-gap:10px}
-.score{grid-column:1;grid-row:1}.out-area{grid-column:2;grid-row:1}.history{grid-column:1 / -1;grid-row:2;max-height:230px;width:100%}
+.score{grid-column:1;grid-row:1}.out-area{grid-column:2;grid-row:1}.history{grid-column:1 / -1;grid-row:2;min-height:0;max-height:none;width:100%}
 .score-number{font-size:84px} .out-button{width:72px;min-height:72px} .history-item{font-size:12px}
 .target-buttons{grid-template-columns:repeat(3,1fr)}
 .history-table{font-size:10px}.history-table th{padding-left:2px;padding-right:2px}.history-table td{padding-left:2px;padding-right:2px}
@@ -227,6 +227,7 @@ body{min-height:100vh} button{font:inherit;touch-action:manipulation}
     <div class="play-header"><span id="playMode" class="play-mode"></span><button id="backSettingsButton" class="action-button" type="button">SETTINGS</button></div>
     <div id="playTarget" class="target-label"></div>
     <div id="currentBullRate" class="current-bull-rate hidden">現在のブル率：0.00%（0 / 0）</div>
+    <div id="currentCricketStats" class="current-bull-rate hidden">現在のSTATS：0.00 MPR</div>
     <div class="score-area">
       <div class="history"><div class="history-title">HISTORY</div><div id="historyScroll" class="history-scroll"><div id="historyList"></div></div></div>
       <div class="score"><div id="scoreNumber" class="score-number">0</div><div id="scoreGoal" class="score-goal"></div></div>
@@ -452,7 +453,7 @@ const outButton = $("outButton"), undoButton = $("undoButton"), resetButton = $(
 const backSettingsButton = $("backSettingsButton"), lastInput = $("lastInput");
 const finishedCard = $("finishedCard"), finishedScore = $("finishedScore"), resultButton = $("resultButton"), finishedTitle = $("finishedTitle");
 const resultScreen = $("resultScreen"), resultMode = $("resultMode"), resultScore = $("resultScore"), resultGoal = $("resultGoal"), resultRounds = $("resultRounds");
-const bullResult = $("bullResult"), cricketResult = $("cricketResult");
+const bullResult = $("bullResult"), cricketResult = $("cricketResult"), currentCricketStats = $("currentCricketStats");
 const playResultButton = $("playResultButton");
 const resultReturnPlayButton = $("resultReturnPlayButton"), resultPlayAgainButton = $("resultPlayAgainButton"), resultSettingsButton = $("resultSettingsButton");
 
@@ -643,19 +644,20 @@ function addResult(target, area, value, source) {
     } else if (proGame === "CRICKETCU") {
       const n = target === "bull" ? 25 : Number(target);
       const mult = target === "bull" ? (area === "inner" ? 2 : area === "outer" ? 1 : 0) : ({outer:1,inner:1,double:2,triple:3}[area] || 0);
-      actualValue = (n >= 15 && n <= 20 || target === "bull") ? n * mult : 0;
+      actualValue = target === cricketCuTarget() ? n * mult : 0;
       score += actualValue;
       history.push({target, area, value:actualValue, before, after:score, source});
     } else if (proGame === "SHOOTOUT") {
-      const n = Number(target);
-      if (n >= 1 && n <= 20 && !proShooutoutOpened.has(n)) {
-        const opened = ({outer:1,inner:1,double:2,triple:3}[area] || 0);
-        actualValue = n * (proShootoutOpenAreas + opened);
-        proShootoutOpenAreas += opened;
-        proShooutoutOpened.add(n);
-      } else if (target === "bull" && proShooutoutOpened.size >= 20) {
-        actualValue = (area === "inner" ? 50 : 25) * Math.max(1, proShootoutOpenAreas);
-      } else actualValue = 0;
+      // Each number (including BULL) is available only once. The multiplier
+      // applies before the new target is consumed, then rises by one.
+      const key = target === "bull" ? "bull" : String(target);
+      const valid = target === "bull" || (Number(target) >= 1 && Number(target) <= 20);
+      const hit = valid && !proShooutoutOpened.has(key);
+      const base = target === "bull" ? (area === "inner" ? 50 : area === "outer" ? 25 : 0)
+        : Number(target) * ({outer:1,inner:1,double:2,triple:3}[area] || 0);
+      actualValue = hit && base > 0 ? base * (proShooutoutOpened.size + 1) : 0;
+      if (actualValue > 0) proShooutoutOpened.add(key);
+      proShootoutOpenAreas = proShooutoutOpened.size;
       score += actualValue;
       history.push({target, area, value:actualValue, before, after:score, source});
     }
@@ -890,7 +892,7 @@ undoButton.addEventListener("click", () => {
   cancelRoundEndSounds();
   const item = history.pop();
   score = item.before;
-  if (proGame === "SHOOTOUT") { const seen = new Set(); proShootoutOpenAreas = history.reduce((sum,x)=>{ const n=Number(x.target); if(n>=1 && n<=20 && !seen.has(n)){ seen.add(n); return sum+({outer:1,inner:1,double:2,triple:3}[x.area]||0); } return sum; },0); proShooutoutOpened = seen; }
+  if (proGame === "SHOOTOUT") { proShooutoutOpened = new Set(history.filter(x => x.value > 0).map(x => x.target === "bull" ? "bull" : String(x.target))); proShootoutOpenAreas = proShooutoutOpened.size; }
   proCompleted = false;
   finished = false;
   finishedCard.classList.add("hidden");
@@ -957,6 +959,29 @@ function renderHistory() {
   requestAnimationFrame(() => requestAnimationFrame(() => { historyScroll.scrollTop = Math.max(0, historyScroll.scrollHeight - historyScroll.clientHeight); }));
 }
 
+// Theoretical maximum assumes every future dart hits the requested triple.
+// With k darts remaining, the optimal targets are the k highest available
+// base scores, thrown from low to high to exploit rising multipliers.
+function shootoutNextTarget() {
+  const dartsLeft = Math.max(0, 24 - history.length);
+  const candidates = [];
+  for (let n = 1; n <= 20; n++) if (!proShooutoutOpened.has(String(n))) candidates.push({key:String(n), points:n*3});
+  if (!proShooutoutOpened.has("bull")) candidates.push({key:"bull", points:50});
+  if (!dartsLeft || !candidates.length) return null;
+  const chosen = candidates.sort((a,b) => b.points-a.points).slice(0,dartsLeft);
+  chosen.sort((a,b) => a.points-b.points);
+  return chosen[0].key;
+}
+function cricketCuTarget() {
+  const targets = ["20","19","18","17","16","15","bull"];
+  return targets[Math.min(6, Math.floor(history.length / 3))];
+}
+function cricketCuMarks(item) {
+  const target = ["20","19","18","17","16","15","bull"][Math.min(6, Math.floor(history.indexOf(item) / 3))];
+  if (item.target !== target) return 0;
+  if (item.target === "bull") return item.area === "inner" ? 2 : item.area === "outer" ? 1 : 0;
+  return {outer:1,inner:1,double:2,triple:3}[item.area] || 0;
+}
 function render() {
   scoreNumber.textContent = score;
   scoreGoal.textContent = proGame ? (proGame === "JAPAN01" || proGame === "PERFECT01" ? "REMAINING" : "SCORE / " + (proGame === "SHOOTOUT" ? "5500 GOAL" : proGame === "CRICKETCU" ? "MPR 5.10 GOAL" : "GOAL")) : "GOAL " + goal;
@@ -965,6 +990,22 @@ function render() {
     currentBullRate.textContent = "現在のブル率：" + (history.length ? (bulls / history.length * 100).toFixed(2) : "0.00") + "%（" + bulls + " / " + history.length + "）";
     currentBullRate.classList.remove("hidden");
   } else currentBullRate.classList.add("hidden");
+  if (!proGame && mode === "CRICKET") {
+    const marks = history.reduce((sum,item) => sum + cricketMarks(item), 0);
+    currentCricketStats.textContent = "現在のSTATS：" + (history.length ? (marks * 3 / history.length).toFixed(2) : "0.00") + " MPR";
+    currentCricketStats.classList.remove("hidden");
+  } else if (proGame === "CRICKETCU") {
+    const marks = history.reduce((sum,item) => sum + cricketCuMarks(item), 0);
+    currentCricketStats.textContent = "現在のSTATS：" + (history.length ? (marks * 3 / history.length).toFixed(2) : "0.00") + " MPR";
+    currentCricketStats.classList.remove("hidden");
+  } else currentCricketStats.classList.add("hidden");
+  if (proGame === "SHOOTOUT") {
+    const next = shootoutNextTarget();
+    playTarget.textContent = "NEXT：" + (next === "bull" ? "BULL" : next || "—") + "  ·  ×" + (proShooutoutOpened.size + 1) + "  ·  残り" + Math.max(0,24-history.length) + "投";
+  } else if (proGame === "CRICKETCU") {
+    const target = cricketCuTarget();
+    playTarget.textContent = "TARGET：" + (target === "bull" ? "BULL" : target) + "  ·  ROUND " + Math.min(8,Math.floor(history.length/3)+1) + "/8";
+  }
   renderHistory();
 }
 
@@ -1087,7 +1128,7 @@ function finishProGame(won) {
   let passed = false, detail = "";
   if (proGame === "SHOOTOUT") { passed = score >= 5500; detail = "SCORE " + score + " / 5500"; }
   if (proGame === "JAPAN01") { passed = won && history.length <= 21; detail = "701 · " + rounds + " ROUNDS"; }
-  if (proGame === "CRICKETCU") { const mpr = history.reduce((sum,x)=>sum + ((x.target === "bull" || Number(x.target)>=15 && Number(x.target)<=20) ? (x.target === "bull" ? (x.area === "inner" ? 2 : x.area === "outer" ? 1 : 0) : ({outer:1,inner:1,double:2,triple:3}[x.area]||0)) : 0),0) / 8; passed = mpr >= 5.1; detail = "MPR " + mpr.toFixed(2) + " / 5.10"; }
+  if (proGame === "CRICKETCU") { const mpr = history.reduce((sum,x)=>sum + cricketCuMarks(x),0) / 8; passed = mpr >= 5.1; detail = "MPR " + mpr.toFixed(2) + " / 5.10"; }
   if (proGame === "PERFECT01") { passed = won && history.length <= 24; detail = "501 · " + rounds + " ROUNDS"; }
   if (passed) {
     const arr = proPasses[proGame];
